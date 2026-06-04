@@ -2,8 +2,8 @@
 
 This directory stores all of the functionality necessary to perform actions on the server. Very minimal server-side code should be written outside of this directory.
 
-# Phase 0 - **Extreme Prototyping**
-* No Domain Driven Design; instead, the following concepts will be used:
+# Phase 0 Rules
+* No Domain Driven Design; instead, the following concepts must be used:
 
 * Queries (/queries)
     * All GET routes will execute a query to fulfill their contract
