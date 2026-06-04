@@ -10,7 +10,7 @@
 * A page should be organized in concepts
 * Each concept should be its own component
 * Don't over-abstract, 1 layer of abstraction is ideal for a page
-* If a page just contains one concept don't abstract
+* If a page just contains one concept, don't abstract
 * State that is shared by at least two components can be stored at the page level
 
 Example Page Composition:
