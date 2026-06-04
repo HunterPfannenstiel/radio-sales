@@ -10,7 +10,6 @@ Example File `CreateLeagueMutation.ts`
 
 ```ts
 export type CreateLeaguePayload = {
-    leagueId: string;
     commissionerId: string;
     name: string;
     placementPoints: number[];
