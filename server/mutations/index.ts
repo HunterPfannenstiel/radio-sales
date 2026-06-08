@@ -1,3 +1,5 @@
+import { BlobLogCallMutation } from "./LogCallMutation";
+
 export const Mutations = {
-    //example: createLeagueMutation: new BlobCreateLeagueMutation()
-}
+  logCall: new BlobLogCallMutation(),
+};

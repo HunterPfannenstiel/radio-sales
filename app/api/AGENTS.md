@@ -6,7 +6,7 @@ This directory houses all of the API routes.
 * File based routing via Route Handlers
 * All routes must use zod for input validation
 * A route should never access persisted data directly
-* All access control must go through the `AppPermissions` static class (server/permissions/AppPermissions.ts)
+* All access control must go through the `Roles` static class (server/permissions/Roles.ts)
 
 ### GET Routes
 * Must execute a query defined in server/queries for its response

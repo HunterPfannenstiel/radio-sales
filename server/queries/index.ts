@@ -1,3 +1,5 @@
+import { BlobSearchBusinessesQuery } from "./SearchBusinessesQuery";
+
 export const Queries = {
-    //example: commissionerTeamsQuery: new BlobCommissionerTeamsQuery()
-}
+  searchBusinesses: new BlobSearchBusinessesQuery(),
+};
