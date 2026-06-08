@@ -1,1 +1,30 @@
-The goal for this session is to create a vision for a new feature in this application (not multiple features). This means you do not need to examine the current codebase and you will not be proposing any code. The contents of this session will be used as a roadmap for feature implementation. You will simply be providing high-level wireframes of the feature. To aide in comprehension, you will work through the feature by splitting it into concepts and not continuing onto the next concept until the first concept is satisfied (it is totally valid for a feature to contain only one "concept", do not abitrarily split a feature into concepts). You MUST use the design standards defined in the docs folder to guide your decision making process. Every single proposal must be grounded in the standards. When presenting your work, please include the reasoning for it. Things I want to see proposed include a mock up wire frame, behaviors of the components within the wireframe, and what navigation to a from the concept looks like. Please don't include specific design tokens in your responses but rather just operate at one level higher (specific design tokens are fully allowed when creating the feature document at the very end of the session). Things out of scope for this session include: anything code related. This is a collaborative effort. If anything doesn't align with the standards or if there are obvious signs of improvement in the feature we are creating, please bring it up in our session. If there are any gaps in the feature that needs answered lets make an educated answer and then compile a list of all clarifications needed at the very end of the session. Be sure to save all questions to the very end of your responses, don't ask questions in multiple spots. If a question is fairly open-ended please propose a well-informed answer that the user can use as a baseline for providing an answer. For any questions that weren't fully resolved, please add them at the very bottom of the document that gets created along with the answer that was chosen. You may also ask the user for permission to read other feature docs if you think they may aide in comprehension but first propose which ones you want to read and don't read them immediately. You have full permission to read any of the documents in the design standards directory.
+## Session Goal
+- Create a vision for a single new feature (not multiple features)
+- Do not examine the current codebase or propose any code
+- The output of this session will serve as a roadmap for feature implementation
+
+## Output
+- High-level wireframes of the feature
+- For each proposal, include: a mockup wireframe, component behaviors, and navigation to/from the concept
+- Do not include specific design tokens — operate one level higher (tokens are allowed only in the final document)
+
+## Working Process
+- Split the feature into concepts and fully resolve each before moving to the next
+- A feature with only one concept is valid — do not split arbitrarily
+
+## Design Standards
+- All decisions must be grounded in the standards defined in the `docs` folder
+- Every proposal must include reasoning tied to those standards
+- You have full permission to read any document in the design standards directory
+
+## Collaboration
+- This is a collaborative effort — flag anything that doesn't align with the standards or shows an obvious opportunity for improvement
+
+## Questions & Gaps
+- For any gaps, make an educated answer and save it for the end
+- Do not ask questions mid-response — compile all questions at the very end
+- For open-ended questions, propose a well-informed baseline answer
+- Unresolved questions and their chosen answers go at the bottom of the final document
+
+## Supporting Information
+- You may read the master docs to help answer any questions
