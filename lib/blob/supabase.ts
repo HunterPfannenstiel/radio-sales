@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import type { IBlobStore } from "./IBlobStore";
+import type { IBlobStore } from "./IBlobStore.ts";
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,

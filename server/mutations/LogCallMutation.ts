@@ -1,5 +1,5 @@
-import { blob } from "@/lib/blob";
-import { paths } from "@/lib/blob/paths";
+import { blob } from "../../lib/blob/index.ts";
+import { paths } from "../../lib/blob/paths.ts";
 
 type Store = {
   reps: { id: string; name: string }[];
@@ -34,14 +34,7 @@ const emptyStore = (): Store => ({
   reps: [],
   businesses: [],
   callLogs: [],
-  repGoals: [
-    {
-      repId: "rep-1",
-      monthlyGoalAmount: 20000,
-      weeklyCallTarget: 25,
-      weeklyAskTarget: 5,
-    },
-  ],
+  repGoals: [],
 });
 
 export type LogCallPayload = {
@@ -55,6 +48,7 @@ export type LogCallPayload = {
   termUnit?: "weeks" | "months";
   confidence?: string;
   outcome: string;
+  loggedAt?: string;
 };
 
 export type LogCallResult = {
@@ -135,7 +129,7 @@ export class BlobLogCallMutation implements ILogCallMutation {
       stage,
       whatNext,
       outcome,
-      loggedAt: new Date().toISOString(),
+      loggedAt: payload.loggedAt ?? new Date().toISOString(),
     };
     if (budget !== undefined) callLog.budget = budget;
     if (termValue !== undefined) callLog.termValue = termValue;
