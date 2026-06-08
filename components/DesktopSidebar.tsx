@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import { PhoneCall, BarChart2, Building2, TrendingUp, Settings, User } from "lucide-react"
+import { PhoneCall, BarChart2, Building2, TrendingUp, Settings, User, CheckSquare } from "lucide-react"
+import { usePathname } from "next/navigation"
 import { useQuickLog } from "@/components/QuickLogContext"
 import { cn } from "@/lib/utils"
 
@@ -11,6 +12,7 @@ type NavItem =
 
 export function DesktopSidebar() {
   const { open } = useQuickLog()
+  const pathname = usePathname()
 
   const primaryNav: NavItem[] = [
     {
@@ -21,10 +23,16 @@ export function DesktopSidebar() {
     },
     {
       kind: "link",
+      label: "What's Next",
+      icon: <CheckSquare className="size-4" />,
+      href: "/whats-next",
+      active: pathname === "/whats-next",
+    },
+    {
+      kind: "link",
       label: "Pipeline",
       icon: <TrendingUp className="size-4" />,
       href: "#",
-      active: true,
     },
     {
       kind: "link",

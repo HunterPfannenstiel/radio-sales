@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import { TrendingUp, Building2, PhoneCall, BarChart2, MoreHorizontal } from "lucide-react"
+import { TrendingUp, Building2, PhoneCall, CheckSquare, MoreHorizontal } from "lucide-react"
+import { usePathname } from "next/navigation"
 import { useQuickLog } from "@/components/QuickLogContext"
 import { cn } from "@/lib/utils"
 
@@ -11,6 +12,7 @@ type Tab =
 
 export function MobileTabBar() {
   const { open } = useQuickLog()
+  const pathname = usePathname()
 
   const tabs: Tab[] = [
     {
@@ -18,13 +20,13 @@ export function MobileTabBar() {
       label: "Pipeline",
       icon: <TrendingUp className="size-5" />,
       href: "#",
-      active: true,
     },
     {
       kind: "link",
-      label: "Accounts",
-      icon: <Building2 className="size-5" />,
-      href: "#",
+      label: "What's Next",
+      icon: <CheckSquare className="size-5" />,
+      href: "/whats-next",
+      active: pathname === "/whats-next",
     },
     {
       kind: "action",
@@ -35,8 +37,8 @@ export function MobileTabBar() {
     },
     {
       kind: "link",
-      label: "Coaching",
-      icon: <BarChart2 className="size-5" />,
+      label: "Accounts",
+      icon: <Building2 className="size-5" />,
       href: "#",
     },
     {

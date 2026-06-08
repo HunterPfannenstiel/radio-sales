@@ -38,9 +38,10 @@ Example Page Composition:
         3. **Context Delivery:** Provide the subagent with the prototype document. Inform the subagent it has total autonomy over implementation decisions, code logic, and repository exploration.
         4. **Tool Sequencing:** Explicitly command the subagent to invoke the `/shadcn` skill BEFORE writing any code.
         5. **Design Alignment:** Inform the subagent that all written code must produce UI/UX that strictly complies with the design standards documentation located within the project directory.
+        6. **Frontend Only:** Inform the subagent that it will only be interacting with the frontend. If it needs data it will mock it purely on the frontend.
 
 5. Please pause and wait for my approval to continue.
-6. Once approved please gather all relevant information needed to make highly-informed decisions for our server-side code. Present this to me at a high-level 
+6. Once approved please gather all relevant information needed to make highly-informed decisions for our server-side code. Present this to me at a high-level.
 7. Wait for my explicit approval and collaborate with me
 8. Spawn a subagent with the instruction of implementing the backend for the feature. Please pass it down the contents of our discussion
 9. We should be done
