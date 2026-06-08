@@ -22,9 +22,27 @@ type Store = {
     outcome: string;
     loggedAt: string;
   }[];
+  repGoals: {
+    repId: string;
+    monthlyGoalAmount: number;
+    weeklyCallTarget: number;
+    weeklyAskTarget: number;
+  }[];
 };
 
-const emptyStore = (): Store => ({ reps: [], businesses: [], callLogs: [] });
+const emptyStore = (): Store => ({
+  reps: [],
+  businesses: [],
+  callLogs: [],
+  repGoals: [
+    {
+      repId: "rep-1",
+      monthlyGoalAmount: 20000,
+      weeklyCallTarget: 25,
+      weeklyAskTarget: 5,
+    },
+  ],
+});
 
 export type LogCallPayload = {
   repId: string;
