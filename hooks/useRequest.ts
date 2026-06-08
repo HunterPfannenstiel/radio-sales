@@ -13,6 +13,9 @@ export function useRequest<T = unknown>() {
     try {
       const res = await fetch(url, options);
       if (!res.ok) throw new Error(res.statusText);
+      if (res.status === 204 || res.headers.get("content-length") === "0") {
+        return {} as T;
+      }
       return await res.json() as T;
     } catch (e) {
       const message = e instanceof Error ? e.message : "Request failed";

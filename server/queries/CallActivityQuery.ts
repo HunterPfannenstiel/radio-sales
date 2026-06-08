@@ -1,9 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-
-type Store = {
-  callLogs: { repId: string; loggedAt: string }[];
-};
+import { type Store } from "@/lib/blob/schema";
 
 export type CallActivityDTO = {
   callsToday: number;

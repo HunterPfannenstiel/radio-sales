@@ -81,24 +81,24 @@ const CONFIDENCE_STYLES: Record<string, { bg: string; color: string }> = {
 }
 
 const OUTCOME_OPTIONS = [
-  { value: "pending", label: "Pending" },
-  { value: "yes", label: "Yes" },
-  { value: "no", label: "No" },
+  { value: "sold", label: "Sold" },
+  { value: "not_sold", label: "Not sold" },
+  { value: "follow_up", label: "Follow up" },
 ]
 
 const OUTCOME_STYLES: Record<string, { bg: string; color: string; border?: string }> = {
-  pending: {
-    bg: "var(--color-surface-subtle)",
-    color: "var(--color-text-primary)",
-    border: "var(--color-border-default)",
-  },
-  yes: {
+  sold: {
     bg: "var(--color-status-success)",
     color: "var(--color-text-inverse)",
   },
-  no: {
+  not_sold: {
     bg: "var(--color-status-warning)",
     color: "var(--color-text-inverse)",
+  },
+  follow_up: {
+    bg: "var(--color-surface-subtle)",
+    color: "var(--color-text-primary)",
+    border: "var(--color-border-default)",
   },
 }
 
@@ -110,7 +110,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
   const [termValue, setTermValue] = useState("")
   const [termUnit, setTermUnit] = useState<"weeks" | "months">("weeks")
   const [confidence, setConfidence] = useState("")
-  const [outcome, setOutcome] = useState("pending")
+  const [outcome, setOutcome] = useState<"sold" | "not_sold" | "follow_up">("follow_up")
 
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | undefined>(
     prefill?.businessId
@@ -196,7 +196,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
       setConfidence("")
     } else {
       setConfidence(value)
-      if (value === "in") setOutcome("yes")
+      if (value === "in") setOutcome("sold")
     }
   }
 
@@ -533,7 +533,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => setOutcome(opt.value)}
+                    onClick={() => setOutcome(opt.value as "sold" | "not_sold" | "follow_up")}
                     className="flex-1 rounded-md py-2 text-sm font-medium transition-all"
                     style={{
                       background: styles.bg,

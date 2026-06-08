@@ -1,24 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-
-type Store = {
-  reps: { id: string; name: string }[];
-  businesses: {
-    id: string;
-    repId: string;
-    name: string;
-    createdAt: string;
-  }[];
-  callLogs: {
-    id: string;
-    repId: string;
-    businessId: string;
-    stage: string;
-    whatNext: string;
-    outcome: string;
-    loggedAt: string;
-  }[];
-};
+import { type Store } from "@/lib/blob/schema";
 
 export type WhatsNextBusinessDTO = {
   id: string;
@@ -65,11 +47,17 @@ export class BlobWhatsNextQuery implements IWhatsNextQuery {
       const latestLog = businessLogs[0];
       if (!latestLog || !latestLog.whatNext) continue;
 
+      const businessNextStepIsNewer =
+        business.nextStepUpdatedAt &&
+        new Date(business.nextStepUpdatedAt) > new Date(latestLog.loggedAt);
+
       results.push({
         id: business.id,
         name: business.name,
         stage: latestLog.stage,
-        nextStepText: NEXT_STEP_LABELS[latestLog.whatNext] ?? latestLog.whatNext,
+        nextStepText: businessNextStepIsNewer
+          ? business.nextStep!
+          : (NEXT_STEP_LABELS[latestLog.whatNext] ?? latestLog.whatNext),
         lastContactedAt: latestLog.loggedAt,
       });
     }

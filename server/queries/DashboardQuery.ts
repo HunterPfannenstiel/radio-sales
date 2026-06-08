@@ -1,34 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-
-type Store = {
-  reps: { id: string; name: string }[];
-  businesses: {
-    id: string;
-    repId: string;
-    name: string;
-    createdAt: string;
-  }[];
-  callLogs: {
-    id: string;
-    repId: string;
-    businessId: string;
-    stage: string;
-    whatNext: string;
-    budget?: number;
-    termValue?: number;
-    termUnit?: "weeks" | "months";
-    confidence?: string;
-    outcome: string;
-    loggedAt: string;
-  }[];
-  repGoals: {
-    repId: string;
-    monthlyGoalAmount: number;
-    weeklyCallTarget: number;
-    weeklyAskTarget: number;
-  }[];
-};
+import { type Store, emptyStore } from "@/lib/blob/schema";
 
 export type DashboardQueryParams = {
   repId: string;
@@ -103,12 +75,7 @@ export class BlobDashboardQuery implements IDashboardQuery {
   async execute(params: DashboardQueryParams): Promise<DashboardDTO> {
     const { repId, year, month, weekYear, weekNumber } = params;
 
-    const store = (await blob.read<Store>(paths.store)) ?? {
-      reps: [],
-      businesses: [],
-      callLogs: [],
-      repGoals: [],
-    };
+    const store = (await blob.read<Store>(paths.store)) ?? emptyStore();
 
     // -- Goals --
     const goals = store.repGoals?.find((g) => g.repId === repId);
@@ -171,7 +138,7 @@ export class BlobDashboardQuery implements IDashboardQuery {
 
       if (!withinSpan) continue;
 
-      if (outcome === "Yes") {
+      if (outcome === "sold") {
         soldAmount += monthlyValue;
         projectedAmount += monthlyValue * 0.95;
       } else if (confidence != null && confidence !== "") {

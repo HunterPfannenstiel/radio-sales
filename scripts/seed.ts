@@ -95,8 +95,8 @@ const weekTimestamps = WEEK_OFFSETS.map((offset, i) => {
 type CallDef = {
   businessName: string;
   stage: string;
-  whatNext: string;
-  outcome: string;
+  whatNext: "followup_call" | "send_proposal" | "schedule_demo" | "send_contract" | "check_in";
+  outcome: "sold" | "not_sold" | "follow_up";
   budget?: number;
   termValue?: number;
   termUnit?: "weeks" | "months";
@@ -110,7 +110,7 @@ const SOLD_CALLS: CallDef[] = [
     businessName: "McDonald's",
     stage: "close",
     whatNext: "send_contract",
-    outcome: "yes",
+    outcome: "sold",
     budget: 4_800,
     termValue: 4,
     termUnit: "months",
@@ -120,7 +120,7 @@ const SOLD_CALLS: CallDef[] = [
     businessName: "Regional Auto Group",
     stage: "close",
     whatNext: "send_contract",
-    outcome: "yes",
+    outcome: "sold",
     budget: 7_500,
     termValue: 3,
     termUnit: "months",
@@ -134,7 +134,7 @@ const PIPELINE_CALLS: CallDef[] = [
     businessName: "Sunrise Healthcare",
     stage: "present",
     whatNext: "followup_call",
-    outcome: "pending",
+    outcome: "follow_up",
     budget: 3_000,
     termValue: 3,
     termUnit: "months",
@@ -145,7 +145,7 @@ const PIPELINE_CALLS: CallDef[] = [
     businessName: "The Pizza House",
     stage: "uncover",
     whatNext: "send_proposal",
-    outcome: "pending",
+    outcome: "follow_up",
     budget: 4_500,
     termValue: 3,
     termUnit: "months",
@@ -156,7 +156,7 @@ const PIPELINE_CALLS: CallDef[] = [
     businessName: "City Toyota",
     stage: "approach",
     whatNext: "followup_call",
-    outcome: "pending",
+    outcome: "follow_up",
     budget: 6_000,
     termValue: 3,
     termUnit: "months",
@@ -191,7 +191,7 @@ const WEEKLY_CALLS: CallDef[] = weekTimestamps.map((loggedAt, i) => {
     businessName: WEEKLY_BUSINESSES[i],
     stage: "approach",
     whatNext: "followup_call",
-    outcome: "pending",
+    outcome: "follow_up",
     ...(withAsk
       ? { budget: 1_500 + i * 300, termValue: 3, termUnit: "months" as const, confidence: "HOPE" }
       : {}),

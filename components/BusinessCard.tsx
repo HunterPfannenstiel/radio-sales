@@ -30,9 +30,11 @@ const STAGE_DOT_COLORS: Record<string, string> = {
 
 interface BusinessCardProps {
   business: BusinessCardData
+  /** Called when the card body is tapped/clicked — opens the business view overlay */
+  onPress?: (business: BusinessCardData) => void
 }
 
-export function BusinessCard({ business }: BusinessCardProps) {
+export function BusinessCard({ business, onPress }: BusinessCardProps) {
   const { open } = useQuickLog()
   const stageLabel = STAGE_LABELS[business.stage] ?? business.stage
   const dotColor = STAGE_DOT_COLORS[business.stage] ?? "var(--color-text-secondary)"
@@ -43,9 +45,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
     open({ businessId: business.id, businessName: business.name })
   }
 
+  function handleCardPress(e: React.MouseEvent) {
+    e.preventDefault()
+    onPress?.(business)
+  }
+
   return (
     <a
       href="#"
+      onClick={handleCardPress}
       className="block rounded-[--radius-card] border transition-[background-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{
         background: "var(--color-surface-card)",

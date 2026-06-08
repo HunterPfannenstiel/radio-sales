@@ -1,10 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-
-type Store = {
-  businesses: { id: string; repId: string; name: string }[];
-  callLogs: { repId: string; businessId: string; loggedAt: string }[];
-};
+import { type Store } from "@/lib/blob/schema";
 
 export type BusinessDTO = {
   id: string;
@@ -39,7 +35,7 @@ export class BlobRecentBusinessesQuery implements IRecentBusinessesQuery {
 
     return orderedIds
       .map((id) => businessMap.get(id))
-      .filter((b): b is { id: string; repId: string; name: string } => b !== undefined)
+      .filter((b): b is NonNullable<typeof b> => b !== undefined)
       .map((b) => ({ id: b.id, name: b.name }));
   }
 }

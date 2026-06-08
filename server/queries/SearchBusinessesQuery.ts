@@ -1,16 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-
-type Store = {
-  reps: { id: string; name: string }[];
-  businesses: {
-    id: string;
-    repId: string;
-    name: string;
-    createdAt: string;
-  }[];
-  callLogs: unknown[];
-};
+import { type Store } from "@/lib/blob/schema";
 
 export type BusinessDTO = {
   id: string;

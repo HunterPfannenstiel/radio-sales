@@ -3,19 +3,14 @@ import { z } from "zod";
 import { Mutations } from "@/server/mutations";
 import { Roles } from "@/server/roles/Roles";
 
-const logCallBodySchema = z.object({
-  businessName: z.string().min(1),
-  businessId: z.string().optional(),
+const updateStageBodySchema = z.object({
   stage: z.string().min(1),
-  whatNext: z.enum(["followup_call", "send_proposal", "schedule_demo", "send_contract", "check_in"]),
-  budget: z.number().optional(),
-  termValue: z.number().optional(),
-  termUnit: z.enum(["weeks", "months"]).optional(),
-  confidence: z.string().optional(),
-  outcome: z.enum(["sold", "not_sold", "follow_up"]),
 });
 
-export async function POST(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const repId = process.env.CURRENT_REP_ID;
   if (!repId) {
     return new Response(
@@ -31,6 +26,8 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  const { id: businessId } = await params;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -41,14 +38,29 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const parsed = logCallBodySchema.safeParse(body);
+  const parsed = updateStageBodySchema.safeParse(body);
   if (!parsed.success) {
     return new Response(
-      JSON.stringify({ error: "Invalid request body", details: parsed.error.flatten() }),
+      JSON.stringify({
+        error: "Invalid request body",
+        details: parsed.error.flatten(),
+      }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  const result = await Mutations.logCall.execute({ repId, ...parsed.data });
-  return Response.json(result, { status: 201 });
+  try {
+    await Mutations.updateBusinessStage.execute({
+      repId,
+      businessId,
+      stage: parsed.data.stage,
+    });
+    return new Response(null, { status: 204 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Update failed";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }

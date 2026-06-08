@@ -1,53 +1,18 @@
-import { blob } from "../../lib/blob/index.ts";
-import { paths } from "../../lib/blob/paths.ts";
-
-type Store = {
-  reps: { id: string; name: string }[];
-  businesses: {
-    id: string;
-    repId: string;
-    name: string;
-    createdAt: string;
-  }[];
-  callLogs: {
-    id: string;
-    repId: string;
-    businessId: string;
-    stage: string;
-    whatNext: string;
-    budget?: number;
-    termValue?: number;
-    termUnit?: "weeks" | "months";
-    confidence?: string;
-    outcome: string;
-    loggedAt: string;
-  }[];
-  repGoals: {
-    repId: string;
-    monthlyGoalAmount: number;
-    weeklyCallTarget: number;
-    weeklyAskTarget: number;
-  }[];
-};
-
-const emptyStore = (): Store => ({
-  reps: [],
-  businesses: [],
-  callLogs: [],
-  repGoals: [],
-});
+import { blob } from "@/lib/blob";
+import { paths } from "@/lib/blob/paths";
+import { type Store, emptyStore } from "@/lib/blob/schema";
 
 export type LogCallPayload = {
   repId: string;
   businessName: string;
   businessId?: string;
   stage: string;
-  whatNext: string;
+  whatNext: "followup_call" | "send_proposal" | "schedule_demo" | "send_contract" | "check_in";
   budget?: number;
   termValue?: number;
   termUnit?: "weeks" | "months";
   confidence?: string;
-  outcome: string;
+  outcome: "sold" | "not_sold" | "follow_up";
   loggedAt?: string;
 };
 

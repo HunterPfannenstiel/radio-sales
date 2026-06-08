@@ -1,24 +1,6 @@
-import { blob } from "../../lib/blob/index.ts";
-import { paths } from "../../lib/blob/paths.ts";
-
-type Store = {
-  reps: { id: string; name: string }[];
-  businesses: { id: string; repId: string; name: string; createdAt: string }[];
-  callLogs: unknown[];
-  repGoals: {
-    repId: string;
-    monthlyGoalAmount: number;
-    weeklyCallTarget: number;
-    weeklyAskTarget: number;
-  }[];
-};
-
-const emptyStore = (): Store => ({
-  reps: [],
-  businesses: [],
-  callLogs: [],
-  repGoals: [],
-});
+import { blob } from "@/lib/blob";
+import { paths } from "@/lib/blob/paths";
+import { type Store, emptyStore } from "@/lib/blob/schema";
 
 export type SetRepGoalPayload = {
   repId: string;
