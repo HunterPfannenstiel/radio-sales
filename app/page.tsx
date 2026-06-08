@@ -253,6 +253,29 @@ function PeriodNavigator({
 }
 
 // ---------------------------------------------------------------------------
+// LevelMeter
+// ---------------------------------------------------------------------------
+
+function LevelMeter({ ratio, color }: { ratio: number; color: string }) {
+  const SEGMENTS = 20
+  const filled = Math.round(ratio * SEGMENTS)
+  return (
+    <div className="flex gap-px w-full">
+      {Array.from({ length: SEGMENTS }, (_, i) => (
+        <div
+          key={i}
+          className="flex-1"
+          style={{
+            height: "10px",
+            background: i < filled ? color : "var(--color-surface-subtle)",
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // MoneyPaceCard
 // ---------------------------------------------------------------------------
 
@@ -309,10 +332,11 @@ function MoneyPaceCard({
 
   return (
     <div
-      className="w-full rounded-[--radius-card] border p-5 flex flex-col gap-4"
+      className="w-full rounded-[--radius-card] p-5 flex flex-col gap-4"
       style={{
         background: "var(--color-surface-card)",
-        borderColor: "var(--color-border-default)",
+        borderLeft: "4px solid var(--color-accent-primary)",
+        boxShadow: "0 0 0 1px var(--color-border-default)",
       }}
     >
       {/* Header */}
@@ -339,7 +363,7 @@ function MoneyPaceCard({
       <div className="flex flex-col gap-0.5">
         <span
           className="font-bold leading-none"
-          style={{ fontSize: "var(--font-size-h1)", color: statusColor }}
+          style={{ fontSize: "var(--font-size-hero)", color: statusColor }}
         >
           {soldPercent}%
         </span>
@@ -350,19 +374,8 @@ function MoneyPaceCard({
         </span>
       </div>
 
-      {/* Progress bar */}
-      <div
-        className="w-full h-2 rounded-full overflow-hidden"
-        style={{ background: "var(--color-surface-subtle)" }}
-      >
-        <div
-          className="h-full rounded-full transition-all"
-          style={{
-            width: `${Math.min(soldPercent, 100)}%`,
-            background: statusColor,
-          }}
-        />
-      </div>
+      {/* Level meter */}
+      <LevelMeter ratio={Math.min(soldPercent / 100, 1)} color={statusColor} />
 
       {/* Supporting figures */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -482,7 +495,7 @@ function ActivityCard({
       <div className="flex items-baseline gap-1">
         <span
           className="font-bold leading-none"
-          style={{ fontSize: "var(--font-size-h1)", color: "var(--color-text-primary)" }}
+          style={{ fontSize: "var(--font-size-hero)", color: "var(--color-text-primary)" }}
         >
           {count}
         </span>
@@ -496,19 +509,8 @@ function ActivityCard({
         this week
       </span>
 
-      {/* Progress bar */}
-      <div
-        className="w-full h-2 rounded-full overflow-hidden"
-        style={{ background: "var(--color-surface-subtle)" }}
-      >
-        <div
-          className="h-full rounded-full transition-all"
-          style={{
-            width: `${ratio * 100}%`,
-            background: statusColor,
-          }}
-        />
-      </div>
+      {/* Level meter */}
+      <LevelMeter ratio={ratio} color={statusColor} />
 
       {/* Footer */}
       <span

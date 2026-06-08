@@ -66,9 +66,20 @@ export function DesktopSidebar() {
   return (
     <aside className="hidden md:flex flex-col w-56 shrink-0 h-full border-r border-border bg-sidebar">
       {/* Logo / app name */}
-      <div className="px-4 py-5 border-b border-border">
-        <span className="font-bold text-sm text-sidebar-foreground tracking-tight">
-          RadioSales
+      <div className="px-4 py-5 border-b border-border flex items-center gap-2.5">
+        <span
+          className="inline-block w-2.5 h-2.5 rounded-full shrink-0 animate-pulse"
+          style={{ background: "var(--color-accent-primary)" }}
+        />
+        <span
+          className="font-bold tracking-widest uppercase leading-none"
+          style={{
+            fontFamily: "var(--font-family-heading)",
+            fontSize: "var(--font-size-small)",
+            color: "var(--sidebar-foreground)",
+          }}
+        >
+          On Air
         </span>
       </div>
 
@@ -96,13 +107,13 @@ function SidebarItem({ item }: { item: NavItem }) {
     "flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm transition-colors text-left",
     isActive
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-      : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+      : "text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
   )
 
   if (item.kind === "action") {
     return (
       <button type="button" onClick={item.onClick} className={baseClasses}>
-        <span className={cn(isActive ? "text-sidebar-primary" : "text-muted-foreground")}>
+        <span className={cn(isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50")}>
           {item.icon}
         </span>
         {item.label}
@@ -112,7 +123,7 @@ function SidebarItem({ item }: { item: NavItem }) {
 
   return (
     <a href={item.href} className={baseClasses}>
-      <span className={cn(isActive ? "text-sidebar-primary" : "text-muted-foreground")}>
+      <span className={cn(isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50")}>
         {item.icon}
       </span>
       {item.label}

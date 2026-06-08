@@ -16,3 +16,4 @@
 | [help-integration.md](help-integration.md) | "?" icon placement, help panel vs. tooltip vs. inline link decision, empty state help link policy |
 | [components.md](components.md) | Card anatomy, button tier hierarchy, form input anatomy, empty state template structure |
 | [crud-workflows.md](crud-workflows.md) | Creation pattern decision tree, wizard standards, form layout rules, edit vs. create parity, contextual quick-add pattern |
+| [design-thesis.md](design-thesis.md) | The core thesis for all design decisions. This file should always be read when making any design decisions. |

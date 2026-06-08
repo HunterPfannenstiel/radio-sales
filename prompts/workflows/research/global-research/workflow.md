@@ -9,8 +9,7 @@ they want included in the research. If not, propose a set of sources appropriate
 the project type and wait for confirmation before proceeding.
 
 ## Step 1 — Research
-Read `application-research.md` in full. Work through each section systematically,
-researching and documenting answers based on the project codebase, the confirmed
+Invoke the `/frontend-design:frontend-design` skill and then read `application-research.md` in full. Work through each section systematically, researching and documenting answers based on the project codebase, the confirmed
 sources from Step 0, and any provided design direction. Compile all findings into
 a single structured document mirroring the section layout of `application-research.md`.
 
