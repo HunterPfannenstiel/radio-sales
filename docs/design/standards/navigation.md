@@ -50,6 +50,8 @@ Secondary content opens in different containers depending on what the user needs
 
 **Rule:** Never use a modal where a slide-over would preserve useful parent context. Never use a slide-over for a confirmation — the blocking behavior of a modal is intentional for safety.
 
+**Breakpoint Consistency Rule:** A surface must use the same container type across all breakpoints. Never use a full-page view on one breakpoint and an overlay (slide-over, bottom sheet) on another. Overlays adapt their entry direction per viewport — slide-over on desktop, bottom sheet on mobile — but the container type must remain consistent.
+
 ---
 
 ## Mobile: Bottom Sheet
