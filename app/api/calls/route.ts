@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { Mutations } from "@/server/mutations";
-import { Roles } from "@/server/permissions/Roles";
+import { Roles } from "@/server/roles/Roles";
 
 const logCallBodySchema = z.object({
   businessName: z.string().min(1),
