@@ -16,7 +16,7 @@
 2. A prototype page
 
 ## Session Rules
-- **Important**: Every decision must include a reason and with that reason being presented to the user.
+- **Important**: Every decision must include a reason and with that reason being presented to the user
     - If the reason was rooted in something you found in a document, quote the specific piece of the document exactly
     - If the reason was an inference or assumption made based off a document, directly state that along with the specific piece of the document
     - If the reason was influenced, but not directly stated, by a document, directly state that along with the specific piece of the document that influenced the reasoning

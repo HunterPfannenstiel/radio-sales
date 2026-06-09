@@ -23,6 +23,6 @@
 - All logic for a concept must be in a hook in a separate file
     - The hooks are purely there to convey intent which is done via their API
         - No implementation agent should ever need to read a hook file
-- All intended behavior should be placed in comments as close to their source as possible
+- All intended behavior should be placed in comments as close to their source as possible with the exception of hooks. Behavior regarding hooks should be placed in the component, next to the hook
     - This is how an implementation agent will answer "Is this what they want or not?"
 - Page.tsx bundles all of the concepts together for display purposes only
