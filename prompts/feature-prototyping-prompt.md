@@ -30,5 +30,6 @@
 ### Flow
 1. You will first digest the user's idea and build an initial prototype document based on the prototype standards (`my-app/app/prototype/PROTOTYPE.md`)
 2. Present the location of the prototype to the user (the url) and all of your rationales
+    - Master doc rationales should only be presented, rationales based on the prototype.md doc are not required
 3. Collaborate with the user, making adjustments to the prototype, until the user is satisfied
 4. Present the behavior document that will go along with the prototype

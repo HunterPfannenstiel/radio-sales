@@ -5,7 +5,6 @@ import { useWeekCalendar } from './useWeekCalendar'
 
 interface WeekCalendarProps {
   selectedDate: Date
-  // Called with the Monday of the chosen week
   onSelectWeek: (monday: Date) => void
 }
 
@@ -24,7 +23,6 @@ export function WeekCalendar({ selectedDate, onSelectWeek }: WeekCalendarProps) 
 
   return (
     <div className="w-80 flex flex-col gap-3">
-      {/* Month navigation — browse months without using the month picker */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={goToPrevMonth}>
           <ChevronLeft className="h-4 w-4" />

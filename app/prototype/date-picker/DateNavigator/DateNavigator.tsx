@@ -1,74 +1,61 @@
-"use client";
+'use client'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { WeekCalendar } from '../WeekCalendar/WeekCalendar'
+import { useDateNavigator } from './useDateNavigator'
 
-// DateNavigator: the week-navigation header on the rep dashboard
-// Shows three independently clickable segments: Month · Year · Week
-// Each segment opens its own picker dialog (see MonthPicker, YearPicker, WeekCalendar concepts)
+export function DateNavigator() {
+  const {
+    selectedDate,
+    setSelectedDate,
+    isOpen,
+    isCurrentWeek,
+    openCalendar,
+    closeCalendar,
+    goToPrevWeek,
+    goToNextWeek,
+  } = useDateNavigator()
 
-export default function DateNavigator() {
+  const weekEnd = new Date(selectedDate)
+  weekEnd.setDate(selectedDate.getDate() + 6)
+
+  const weekLabel =
+    selectedDate.getMonth() === weekEnd.getMonth()
+      ? `${selectedDate.toLocaleString('default', { month: 'short' })} ${selectedDate.getDate()} – ${weekEnd.getDate()}`
+      : `${selectedDate.toLocaleString('default', { month: 'short' })} ${selectedDate.getDate()} – ${weekEnd.toLocaleString('default', { month: 'short' })} ${weekEnd.getDate()}`
+
+  function handleSelectWeek(monday: Date) {
+    setSelectedDate(monday)
+    closeCalendar()
+  }
+
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "4px",
-        padding: "6px 14px",
-        border: "1px solid #d4d4d4",
-        borderRadius: "10px",
-        background: "white",
-        fontSize: "15px",
-      }}
-    >
-      {/* Clicking this segment opens MonthPicker — see MonthPicker concept */}
-      <button
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          fontWeight: 600,
-          fontSize: "15px",
-          padding: "2px 6px",
-          borderRadius: "6px",
-          color: "#111",
-        }}
-      >
-        Jun
-      </button>
+    <>
+      <div className="inline-flex items-center border rounded-lg px-1 w-52">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={goToPrevWeek}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
 
-      <span style={{ color: "#ccc", fontWeight: 300 }}>·</span>
+        <div className="flex-1 flex justify-center">
+          <Button variant="ghost" className="px-2 text-sm font-medium gap-1.5" onClick={openCalendar}>
+            {isCurrentWeek && (
+              <span className="text-xs leading-none" style={{ color: 'var(--color-accent-primary)' }}>●</span>
+            )}
+            {weekLabel}
+          </Button>
+        </div>
 
-      {/* Clicking this segment opens YearPicker spindle — see YearPicker concept */}
-      <button
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          fontWeight: 600,
-          fontSize: "15px",
-          padding: "2px 6px",
-          borderRadius: "6px",
-          color: "#111",
-        }}
-      >
-        2026
-      </button>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={goToNextWeek}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
 
-      <span style={{ color: "#ccc", fontWeight: 300 }}>·</span>
-
-      {/* Clicking this segment opens WeekCalendar — see WeekCalendar concept */}
-      <button
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          fontWeight: 600,
-          fontSize: "15px",
-          padding: "2px 6px",
-          borderRadius: "6px",
-          color: "#111",
-        }}
-      >
-        W23
-      </button>
-    </div>
-  );
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) closeCalendar() }}>
+        <DialogContent showCloseButton={false} className="w-auto max-w-none p-4">
+          <WeekCalendar selectedDate={selectedDate} onSelectWeek={handleSelectWeek} />
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }

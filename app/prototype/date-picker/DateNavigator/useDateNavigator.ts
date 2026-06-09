@@ -1,51 +1,63 @@
-// Hook API for DateNavigator
-// Owns the active week context and controls which picker dialog is open
+'use client'
+import { useState } from 'react'
+
+function getMondayOfCurrentWeek(): Date {
+  const today = new Date()
+  const day = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
+  monday.setHours(0, 0, 0, 0)
+  return monday
+}
+
+function getRelativeLabel(selectedMonday: Date, todayMonday: Date): string | undefined {
+  const diffWeeks = Math.round(
+    (todayMonday.getTime() - selectedMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)
+  )
+  if (diffWeeks === 0) return 'This week'
+  if (diffWeeks === 1) return 'Last week'
+  if (diffWeeks === 2) return '2 weeks ago'
+  return undefined
+}
 
 export function useDateNavigator() {
-  // The currently selected month (0-indexed, 0 = January)
-  const selectedMonth: number = 5;
+  const thisWeekMonday = getMondayOfCurrentWeek()
+  const [selectedDate, setSelectedDate] = useState<Date>(thisWeekMonday)
+  const [isOpen, setIsOpen] = useState(false)
 
-  // The currently selected year (full 4-digit year)
-  const selectedYear: number = 2026;
+  const isCurrentWeek = selectedDate.getTime() === thisWeekMonday.getTime()
+  const relativeLabel = getRelativeLabel(selectedDate, thisWeekMonday)
 
-  // ISO week number within the year for the currently selected week
-  const selectedWeek: number = 23;
+  function goToPrevWeek() {
+    setSelectedDate((d) => {
+      const next = new Date(d)
+      next.setDate(d.getDate() - 7)
+      return next
+    })
+  }
 
-  // Which picker dialog is currently open — null means all closed
-  const activePicker: "month" | "year" | "week" | null = null;
+  function goToNextWeek() {
+    setSelectedDate((d) => {
+      const next = new Date(d)
+      next.setDate(d.getDate() + 7)
+      return next
+    })
+  }
 
-  // Opens the MonthPicker dialog anchored near the month label
-  const openMonthPicker = () => {};
-
-  // Opens the YearPicker spindle dialog anchored near the year label
-  const openYearPicker = () => {};
-
-  // Opens the WeekCalendar dialog anchored near the week label
-  const openWeekPicker = () => {};
-
-  // Closes whichever picker is currently open
-  const closePicker = () => {};
-
-  // Called by MonthPicker on selection — updates selectedMonth and closes picker
-  const setMonth = (_month: number) => {};
-
-  // Called by YearPicker on selection — updates selectedYear and closes picker
-  const setYear = (_year: number) => {};
-
-  // Called by WeekCalendar on row click — updates selectedWeek and closes picker
-  const setWeek = (_week: number) => {};
+  function goToCurrentWeek() {
+    setSelectedDate(getMondayOfCurrentWeek())
+  }
 
   return {
-    selectedMonth,
-    selectedYear,
-    selectedWeek,
-    activePicker,
-    openMonthPicker,
-    openYearPicker,
-    openWeekPicker,
-    closePicker,
-    setMonth,
-    setYear,
-    setWeek,
-  };
+    selectedDate,
+    setSelectedDate,
+    isOpen,
+    isCurrentWeek,
+    relativeLabel,
+    openCalendar: () => setIsOpen(true),
+    closeCalendar: () => setIsOpen(false),
+    goToPrevWeek,
+    goToNextWeek,
+    goToCurrentWeek,
+  }
 }

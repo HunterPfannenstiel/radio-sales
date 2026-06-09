@@ -1,55 +1,35 @@
-// Prototype page — bundles all date-picker concepts for visual review
-// This page is display-only; concepts are intentionally shown simultaneously
-// rather than triggered by interaction, to allow reviewing all pieces at once.
+'use client'
+import { useState } from 'react'
+import { DateNavigator } from './DateNavigator/DateNavigator'
+import { WeekCalendar } from './WeekCalendar/WeekCalendar'
 
-import DateNavigator from "./DateNavigator/DateNavigator";
-import MonthPicker from "./MonthPicker/MonthPicker";
-import YearPicker from "./YearPicker/YearPicker";
-import WeekCalendar from "./WeekCalendar/WeekCalendar";
+function getMondayOfCurrentWeek(): Date {
+  const today = new Date()
+  const day = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
+  monday.setHours(0, 0, 0, 0)
+  return monday
+}
 
 export default function DatePickerPrototypePage() {
+  const [selectedDate, setSelectedDate] = useState(getMondayOfCurrentWeek)
+
   return (
-    <div
-      style={{
-        padding: "40px 32px",
-        fontFamily: "system-ui, sans-serif",
-        display: "flex",
-        flexDirection: "column",
-        gap: "48px",
-        maxWidth: "600px",
-      }}
-    >
-      {/* ── DateNavigator ─────────────────────────────────────────────── */}
-      <section>
-        <p style={{ fontSize: "11px", fontWeight: 600, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>
-          Date Navigator — rep dashboard header
-        </p>
+    <div className="p-8 flex flex-col gap-10">
+      <section className="flex flex-col gap-2">
+        <p className="text-xs text-muted-foreground">DateNavigator</p>
+        {/* Implementation note: selectedDate lives inside DateNavigator for the prototype.
+            In production, lift it to the dashboard page so other components respond to week changes. */}
         <DateNavigator />
       </section>
 
-      {/* ── MonthPicker ───────────────────────────────────────────────── */}
-      <section>
-        <p style={{ fontSize: "11px", fontWeight: 600, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>
-          Month Picker — opens on month tap
-        </p>
-        <MonthPicker />
-      </section>
-
-      {/* ── YearPicker ────────────────────────────────────────────────── */}
-      <section>
-        <p style={{ fontSize: "11px", fontWeight: 600, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>
-          Year Picker — opens on year tap (spindle / drum effect)
-        </p>
-        <YearPicker />
-      </section>
-
-      {/* ── WeekCalendar ──────────────────────────────────────────────── */}
-      <section>
-        <p style={{ fontSize: "11px", fontWeight: 600, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>
-          Week Calendar — opens on week tap
-        </p>
-        <WeekCalendar />
+      <section className="flex flex-col gap-2">
+        <p className="text-xs text-muted-foreground">WeekCalendar</p>
+        <div className="inline-flex border rounded-lg p-4">
+          <WeekCalendar selectedDate={selectedDate} onSelectWeek={setSelectedDate} />
+        </div>
       </section>
     </div>
-  );
+  )
 }

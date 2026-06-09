@@ -14,15 +14,13 @@
 - Understanding the intent and layout of a feature
 
 ## Rules
-- Raw HTML
-- No external dependencies
+- Shadcn components or components from `/components` only
+    - If a particular component doesn't exist yet, download it from shadcn
 - Visuals only, very minimal functionality and wiring
     - Focus on the fundamental pieces that are core to the feature's survival
     - For instance: instead of having a nav bar button open a bottom sheet, have a component for the nav bar and a component for the bottom sheet contents.
 - Each concept of the feature gets its own file/folder and is fully self-contained
 - All logic for a concept must be in a hook in a separate file
-    - The hooks are purely there to convey intent which is done via their API
-        - No implementation agent should ever need to read a hook file
-- All intended behavior should be placed in comments as close to their source as possible with the exception of hooks. Behavior regarding hooks should be placed in the component, next to the hook
+- All intended behavior should be documented in a comment block at the top of the component. Inline comments only for element-level behavior that can't be inferred from the JSX.
     - This is how an implementation agent will answer "Is this what they want or not?"
-- Page.tsx bundles all of the concepts together for display purposes only
+- Page.tsx renders every concept individually. Do not use Dialog, Sheet, Popover, or any overlay wrapper — render the inner content as a plain element.

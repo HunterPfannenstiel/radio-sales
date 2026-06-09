@@ -4,8 +4,8 @@ import { useState } from 'react'
 export interface WeekRow {
   weekNumber: number
   monday: Date
-  dateSpan: string       // e.g. "Jun 2 – 8" or "May 26 – Jun 1" for cross-month weeks
-  relativeLabel?: string // "This week" | "Last week" | "2 weeks ago" — present only for recent rows
+  dateSpan: string
+  relativeLabel?: string
 }
 
 function getISOWeekNumber(date: Date): number {
@@ -48,8 +48,6 @@ export function useWeekCalendar(selectedDate: Date) {
   const today = new Date()
   const todayMonday = getMondayOf(today)
 
-  // displayDate drives which month's weeks are shown — independent of selectedDate
-  // so the rep can browse months without changing their selection
   const [displayDate, setDisplayDate] = useState(() => new Date(selectedDate))
 
   const firstOfMonth = new Date(displayDate.getFullYear(), displayDate.getMonth(), 1)
@@ -71,10 +69,8 @@ export function useWeekCalendar(selectedDate: Date) {
 
   const selectedWeekNumber = getISOWeekNumber(selectedDate)
   const todayWeekNumber = getISOWeekNumber(today)
-
   const currentMonthLabel = displayDate.toLocaleString('default', { month: 'long', year: 'numeric' })
 
-  // Targets for the quick-select chips at the top of the picker
   const thisWeekMonday = new Date(todayMonday)
   const lastWeekMonday = new Date(todayMonday)
   lastWeekMonday.setDate(todayMonday.getDate() - 7)
@@ -85,8 +81,6 @@ export function useWeekCalendar(selectedDate: Date) {
   const goToNextMonth = () =>
     setDisplayDate((d) => { const n = new Date(d); n.setMonth(d.getMonth() + 1); return n })
 
-  // Navigates displayDate to the month containing the given date — used when a quick-select
-  // chip picks a week that may not be visible in the currently displayed month
   const goToDate = (date: Date) =>
     setDisplayDate(new Date(date.getFullYear(), date.getMonth(), 1))
 

@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState } from "react"
 import { PhoneCall, Target, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuickLog } from "@/components/QuickLogContext"
 import { useFetch } from "@/hooks/useFetch"
-import { PeriodNavigator } from "@/components/PeriodNavigator"
+import { DateNavigator } from "@/components/DateNavigator/DateNavigator"
 
 // ---------------------------------------------------------------------------
 // Dashboard data type (mirrors DashboardDTO from server/queries/DashboardQuery)
@@ -50,14 +50,12 @@ function getISOWeekNumber(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 }
 
-/** Returns the Monday date of a given ISO week number + year */
-function getMondayOfWeek(year: number, week: number): Date {
-  const jan4 = new Date(Date.UTC(year, 0, 4))
-  const dayOfWeek = jan4.getUTCDay() || 7
-  const firstMonday = new Date(jan4)
-  firstMonday.setUTCDate(jan4.getUTCDate() + (1 - dayOfWeek))
-  const monday = new Date(firstMonday)
-  monday.setUTCDate(firstMonday.getUTCDate() + (week - 1) * 7)
+function getMondayOfCurrentWeek(): Date {
+  const today = new Date()
+  const day = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
+  monday.setHours(0, 0, 0, 0)
   return monday
 }
 
@@ -481,40 +479,17 @@ function ActivityPaceSection({
 // ---------------------------------------------------------------------------
 
 export default function DashboardPage() {
-  const today = new Date()
+  const [selectedMonday, setSelectedMonday] = useState<Date>(getMondayOfCurrentWeek)
 
-  const [selectedYear, setSelectedYear] = useState(today.getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState(today.getMonth())
-  const [selectedWeekYear, setSelectedWeekYear] = useState(today.getFullYear())
-  const [selectedWeek, setSelectedWeek] = useState(getISOWeekNumber(today))
-
-  const handleMonthChange = useCallback((year: number, month: number) => {
-    setSelectedYear(year)
-    setSelectedMonth(month)
-    const firstDay = new Date(year, month, 1)
-    const firstWeek = getISOWeekNumber(firstDay)
-    setSelectedWeekYear(firstDay.getFullYear())
-    setSelectedWeek(firstWeek)
-  }, [])
-
-  const handleWeekChange = useCallback((weekYear: number, week: number) => {
-    setSelectedWeekYear(weekYear)
-    setSelectedWeek(week)
-    const monday = getMondayOfWeek(weekYear, week)
-    const thursday = new Date(monday)
-    thursday.setUTCDate(monday.getUTCDate() + 3)
-    setSelectedYear(thursday.getUTCFullYear())
-    setSelectedMonth(thursday.getUTCMonth())
-  }, [])
-
-  const monthParam = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`
-  const apiUrl = `/api/dashboard?month=${monthParam}&weekYear=${selectedWeekYear}&weekNumber=${selectedWeek}`
+  const thursday = new Date(selectedMonday)
+  thursday.setDate(selectedMonday.getDate() + 3)
+  const monthParam = `${thursday.getFullYear()}-${String(thursday.getMonth() + 1).padStart(2, "0")}`
+  const weekYear = thursday.getFullYear()
+  const weekNumber = getISOWeekNumber(selectedMonday)
+  const apiUrl = `/api/dashboard?month=${monthParam}&weekYear=${weekYear}&weekNumber=${weekNumber}`
   const { data, loading, error } = useFetch<DashboardData>(apiUrl)
 
-  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  })
+  const monthLabel = thursday.toLocaleDateString("en-US", { month: "long", year: "numeric" })
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-3xl mx-auto w-full">
@@ -525,14 +500,7 @@ export default function DashboardPage() {
         My Dashboard
       </h1>
 
-      <PeriodNavigator
-        selectedYear={selectedYear}
-        selectedMonth={selectedMonth}
-        selectedWeek={selectedWeek}
-        selectedWeekYear={selectedWeekYear}
-        onMonthChange={handleMonthChange}
-        onWeekChange={handleWeekChange}
-      />
+      <DateNavigator date={selectedMonday} onChange={setSelectedMonday} />
 
       {loading && (
         <div className="flex justify-center py-12">
