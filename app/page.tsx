@@ -1,11 +1,12 @@
 "use client"
 
 import React, { useState, useCallback } from "react"
-import { ChevronLeft, ChevronRight, PhoneCall, TrendingUp } from "lucide-react"
+import { PhoneCall, Target, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuickLog } from "@/components/QuickLogContext"
 import { useFetch } from "@/hooks/useFetch"
+import { PeriodNavigator } from "@/components/PeriodNavigator"
 
 // ---------------------------------------------------------------------------
 // Dashboard data type (mirrors DashboardDTO from server/queries/DashboardQuery)
@@ -60,19 +61,6 @@ function getMondayOfWeek(year: number, week: number): Date {
   return monday
 }
 
-/** Format a date range as "Mon D–D" or "Mon D – Mon D" */
-function formatWeekRange(monday: Date): string {
-  const friday = new Date(monday)
-  friday.setUTCDate(monday.getUTCDate() + 4)
-  const monthAbbr = (d: Date) =>
-    d.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" })
-  const day = (d: Date) => d.getUTCDate()
-  if (monday.getUTCMonth() === friday.getUTCMonth()) {
-    return `${monthAbbr(monday)} ${day(monday)}–${day(friday)}`
-  }
-  return `${monthAbbr(monday)} ${day(monday)} – ${monthAbbr(friday)} ${day(friday)}`
-}
-
 function paceStatusToColor(status: PaceStatus): string {
   switch (status) {
     case "ahead":
@@ -103,153 +91,6 @@ function paceStatusLabel(status: PaceStatus): string {
     case "goal_reached":
       return "Goal Reached"
   }
-}
-
-// ---------------------------------------------------------------------------
-// PeriodNavigator
-// ---------------------------------------------------------------------------
-
-interface PeriodNavigatorProps {
-  selectedYear: number
-  selectedMonth: number // 0-based
-  selectedWeek: number // ISO week number
-  selectedWeekYear: number
-  onMonthChange: (year: number, month: number) => void
-  onWeekChange: (weekYear: number, week: number) => void
-}
-
-function PeriodNavigator({
-  selectedYear,
-  selectedMonth,
-  selectedWeek,
-  selectedWeekYear,
-  onMonthChange,
-  onWeekChange,
-}: PeriodNavigatorProps) {
-  const today = new Date()
-  const currentYear = today.getFullYear()
-  const currentMonth = today.getMonth()
-  const currentWeek = getISOWeekNumber(today)
-  const currentWeekYear = today.getFullYear()
-
-  const isCurrentMonth = selectedYear === currentYear && selectedMonth === currentMonth
-  const isCurrentWeek = selectedWeekYear === currentWeekYear && selectedWeek === currentWeek
-
-  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  })
-
-  const weekMonday = getMondayOfWeek(selectedWeekYear, selectedWeek)
-  const weekRange = formatWeekRange(weekMonday)
-
-  function prevMonth() {
-    let y = selectedYear
-    let m = selectedMonth - 1
-    if (m < 0) { m = 11; y -= 1 }
-    onMonthChange(y, m)
-  }
-
-  function nextMonth() {
-    if (isCurrentMonth) return
-    let y = selectedYear
-    let m = selectedMonth + 1
-    if (m > 11) { m = 0; y += 1 }
-    onMonthChange(y, m)
-  }
-
-  function prevWeek() {
-    const mon = getMondayOfWeek(selectedWeekYear, selectedWeek)
-    mon.setUTCDate(mon.getUTCDate() - 7)
-    const w = getISOWeekNumber(mon)
-    onWeekChange(mon.getUTCFullYear(), w)
-  }
-
-  function nextWeek() {
-    if (isCurrentWeek) return
-    const mon = getMondayOfWeek(selectedWeekYear, selectedWeek)
-    mon.setUTCDate(mon.getUTCDate() + 7)
-    const w = getISOWeekNumber(mon)
-    onWeekChange(mon.getUTCFullYear(), w)
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      {/* Month row */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={prevMonth}
-          aria-label="Previous month"
-          className="flex items-center justify-center size-7 rounded hover:bg-accent transition-colors"
-        >
-          <ChevronLeft className="size-4" style={{ color: "var(--color-text-secondary)" }} />
-        </button>
-        <span
-          className="text-sm font-medium min-w-[10ch] text-center"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          {monthLabel}
-        </span>
-        {isCurrentMonth && (
-          <span
-            className="text-xs font-medium px-1.5 py-0.5 rounded"
-            style={{
-              background: "var(--color-status-info)",
-              color: "var(--color-text-inverse)",
-              fontSize: "var(--font-size-micro)",
-            }}
-          >
-            NOW
-          </span>
-        )}
-        <button
-          onClick={nextMonth}
-          disabled={isCurrentMonth}
-          aria-label="Next month"
-          className="flex items-center justify-center size-7 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:pointer-events-none"
-        >
-          <ChevronRight className="size-4" style={{ color: "var(--color-text-secondary)" }} />
-        </button>
-      </div>
-
-      {/* Week row */}
-      <div className="flex items-center gap-2 pl-0.5">
-        <button
-          onClick={prevWeek}
-          aria-label="Previous week"
-          className="flex items-center justify-center size-7 rounded hover:bg-accent transition-colors"
-        >
-          <ChevronLeft className="size-4" style={{ color: "var(--color-text-secondary)" }} />
-        </button>
-        <span
-          className="text-xs min-w-[14ch] text-center"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          Week {selectedWeek} · {weekRange}
-        </span>
-        {isCurrentWeek && (
-          <span
-            className="text-xs font-medium px-1.5 py-0.5 rounded"
-            style={{
-              background: "var(--color-status-info)",
-              color: "var(--color-text-inverse)",
-              fontSize: "var(--font-size-micro)",
-            }}
-          >
-            NOW
-          </span>
-        )}
-        <button
-          onClick={nextWeek}
-          disabled={isCurrentWeek}
-          aria-label="Next week"
-          className="flex items-center justify-center size-7 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:pointer-events-none"
-        >
-          <ChevronRight className="size-4" style={{ color: "var(--color-text-secondary)" }} />
-        </button>
-      </div>
-    </div>
-  )
 }
 
 // ---------------------------------------------------------------------------
@@ -330,9 +171,16 @@ function MoneyPaceCard({
     )
   }
 
+  const meterColor = goalReached
+    ? "var(--color-status-achieved)"
+    : statusColor
+  const heroColor = goalReached
+    ? "var(--color-status-achieved)"
+    : statusColor
+
   return (
     <div
-      className="w-full rounded-[--radius-card] p-5 flex flex-col gap-4"
+      className={`w-full rounded-[--radius-card] p-5 flex flex-col gap-4${goalReached ? " goal-reached-pulse" : ""}`}
       style={{
         background: "var(--color-surface-card)",
         borderLeft: "4px solid var(--color-accent-primary)",
@@ -363,7 +211,7 @@ function MoneyPaceCard({
       <div className="flex flex-col gap-0.5">
         <span
           className="font-bold leading-none"
-          style={{ fontSize: "var(--font-size-hero)", color: statusColor }}
+          style={{ fontSize: "var(--font-size-hero)", color: heroColor }}
         >
           {soldPercent}%
         </span>
@@ -375,7 +223,7 @@ function MoneyPaceCard({
       </div>
 
       {/* Level meter */}
-      <LevelMeter ratio={Math.min(soldPercent / 100, 1)} color={statusColor} />
+      <LevelMeter ratio={Math.min(soldPercent / 100, 1)} color={meterColor} />
 
       {/* Supporting figures */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -435,19 +283,26 @@ function ActivityCard({
 }: ActivityCardProps) {
   const label = type === "calls" ? "Calls" : "Asks"
   const statusColor = activityStatusToColor(paceStatus)
-  const badgeLabel = paceStatus === "on_pace" ? "On Pace" : "Behind"
   const ratio = target > 0 ? Math.min(count / target, 1) : 0
 
   // Empty state — no targets set
   if (target === 0) {
     return (
       <div
-        className="flex-1 rounded-[--radius-card] border p-5 flex flex-col gap-2"
+        className="flex-1 rounded-[--radius-card] border p-5 flex flex-col items-center gap-2 text-center"
         style={{
           background: "var(--color-surface-card)",
           borderColor: "var(--color-border-default)",
         }}
       >
+        <Target
+          style={{
+            width: "var(--icon-size-xl)",
+            height: "var(--icon-size-xl)",
+            color: "var(--color-text-disabled)",
+            strokeWidth: 2.5,
+          }}
+        />
         <h3
           className="font-bold"
           style={{ fontSize: "var(--font-size-h3)", color: "var(--color-text-primary)" }}
@@ -460,6 +315,14 @@ function ActivityCard({
       </div>
     )
   }
+
+  // "Not started" badge state — target set but no activity logged
+  const notStarted = count === 0
+
+  // Weekday progress dots — 5 dots Mon–Fri
+  // elapsed = 5 - daysRemaining (clamped to [0, 5])
+  const elapsed = Math.min(5, Math.max(0, 5 - daysRemaining))
+  const dots = Array.from({ length: 5 }, (_, i) => i < elapsed ? "●" : "○")
 
   const footerText = daysRemaining <= 0 ? "Week complete" : `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left`
 
@@ -479,23 +342,35 @@ function ActivityCard({
         >
           {label} · Week {weekNumber}
         </h3>
-        <span
-          className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-          style={{
-            background: statusColor,
-            color: "var(--color-text-inverse)",
-            fontSize: "var(--font-size-small)",
-          }}
-        >
-          {badgeLabel}
-        </span>
+        {notStarted ? (
+          <span
+            className="shrink-0"
+            style={{
+              fontSize: "var(--font-size-small)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            Not started
+          </span>
+        ) : (
+          <span
+            className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
+            style={{
+              background: statusColor,
+              color: "var(--color-text-inverse)",
+              fontSize: "var(--font-size-small)",
+            }}
+          >
+            {paceStatus === "on_pace" ? "On Pace" : "Behind"}
+          </span>
+        )}
       </div>
 
       {/* Primary figures */}
       <div className="flex items-baseline gap-1">
         <span
           className="font-bold leading-none"
-          style={{ fontSize: "var(--font-size-hero)", color: "var(--color-text-primary)" }}
+          style={{ fontSize: "var(--font-size-h1)", color: statusColor }}
         >
           {count}
         </span>
@@ -511,6 +386,25 @@ function ActivityCard({
 
       {/* Level meter */}
       <LevelMeter ratio={ratio} color={statusColor} />
+
+      {/* Weekday progress dots */}
+      <div
+        className="flex items-center"
+        style={{ gap: "var(--spacing-xs)" }}
+      >
+        {dots.map((dot, i) => (
+          <span
+            key={i}
+            style={{
+              fontSize: "var(--font-size-small)",
+              color: i < elapsed ? statusColor : "var(--color-text-disabled)",
+              lineHeight: 1,
+            }}
+          >
+            {dot}
+          </span>
+        ))}
+      </div>
 
       {/* Footer */}
       <span

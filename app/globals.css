@@ -254,7 +254,19 @@
     @apply font-mono text-sm;
   }
 
-  button { 
-    @apply cursor-pointer; 
-  } 
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+/* Goal-reached card border pulse — fires once, settles back to red accent */
+@keyframes goal-reached-pulse {
+  0%   { box-shadow: 0 0 0 1px var(--color-border-default), 0 0 0 3px transparent; }
+  25%  { box-shadow: 0 0 0 1px var(--color-status-achieved), 0 0 8px 4px color-mix(in oklch, var(--color-status-achieved) 40%, transparent); }
+  60%  { box-shadow: 0 0 0 1px var(--color-status-achieved), 0 0 4px 2px color-mix(in oklch, var(--color-status-achieved) 20%, transparent); }
+  100% { box-shadow: 0 0 0 1px var(--color-border-default); }
+}
+
+.goal-reached-pulse {
+  animation: goal-reached-pulse 1.2s ease-out 1 forwards;
 }

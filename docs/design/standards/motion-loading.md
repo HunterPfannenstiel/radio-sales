@@ -1,6 +1,6 @@
 # Motion & Loading States
 
-Standards for transitions, loading feedback, and animation policy. Actual duration values live in `tokens.md` — reference them by `--duration-*` token name.
+Standards for transitions, loading feedback, and animation policy. Actual duration values live in `globals.css` — reference them by `--duration-*` token name.
 
 ---
 

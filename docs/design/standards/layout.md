@@ -22,7 +22,7 @@ Design decisions for the quick-log screen must prioritize the mobile viewport fi
 
 ## Breakpoint Tiers
 
-Three tiers. Specific pixel values are defined in `tokens.md`.
+Three tiers. Specific pixel values are defined in `globals.css`.
 
 | Tier | Name | Grid |
 |---|---|---|
@@ -43,7 +43,7 @@ Three tiers. Specific pixel values are defined in `tokens.md`.
 
 ## Touch Target Policy
 
-All interactive elements on mobile meet the minimum touch target size defined in `tokens.md`. This applies to buttons, links, nav items, icons, and any tappable element — even if the visible element is smaller, the tappable hit area must meet the minimum.
+All interactive elements on mobile meet the minimum touch target size defined in `globals.css`. This applies to buttons, links, nav items, icons, and any tappable element — even if the visible element is smaller, the tappable hit area must meet the minimum.
 
 ---
 

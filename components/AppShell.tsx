@@ -9,7 +9,7 @@ import { QuickLogContainer } from "@/components/QuickLogContainer"
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <QuickLogProvider>
-      <div className="flex h-full min-h-svh">
+      <div className="flex h-svh">
         {/* Desktop sidebar — hidden on mobile */}
         <DesktopSidebar />
 

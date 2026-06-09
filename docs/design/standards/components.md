@@ -1,6 +1,6 @@
 # Components
 
-Anatomy and behavior rules for the four foundational component types. CRUD composition patterns belong in [crud-workflows.md](crud-workflows.md). Token values belong in `tokens.md`.
+Anatomy and behavior rules for the four foundational component types. CRUD composition patterns belong in [crud-workflows.md](crud-workflows.md). Token values live in `globals.css`.
 
 ---
 

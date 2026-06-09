@@ -1,31 +1,33 @@
 # Color
 
-Rules for semantic color usage. Actual values (hex, HSL) live in `tokens.md` — reference colors by `--color-*` token name only.
+Rules for semantic color usage. Literal values live in `globals.css` — reference colors by `--color-*` token name only.
+
+---
+
+## The On Air Palette
+
+The color system flows from the On Air metaphor. Three zones define the visual world:
+
+- **The control room** — the sidebar. Dark charcoal, always present, instrument-grade. Uses the `--sidebar-*` token family, not the surface hierarchy. It is a special context with its own color environment.
+- **The stage** — the main canvas. Warm off-white. This warmth is intentional and load-bearing — it separates the product from sterile neutral SaaS. Never flatten light-mode surfaces to zero chroma.
+- **The signal** — On Air red (`--color-accent-primary`). It marks what's live, what's critical, what's leading. Use it sparingly: one prominent element per view. If everything is accented, nothing is.
 
 ---
 
 ## Surface Hierarchy
 
-Surfaces create depth and grouping. Use them in order — never apply a deeper surface token on a shallower parent.
+Use surfaces in order — never apply a deeper surface token on a shallower parent.
 
 | Token | Role |
 |---|---|
-| `--color-surface-page` | The outermost page background |
-| `--color-surface-subtle` | Section backgrounds, sidebar background |
+| `--color-surface-page` | The outermost page background — the stage |
+| `--color-surface-subtle` | Section backgrounds |
 | `--color-surface-card` | Cards, panels, form containers |
-| `--color-surface-raised` | Dropdowns, tooltips, popovers — sits above cards |
+| `--color-surface-raised` | Dropdowns, tooltips, popovers |
 
-Cards use `--color-surface-card` as their background, never `--color-surface-page`. A card on a card is not permitted — flatten the component instead.
+Cards use `--color-surface-card`, never `--color-surface-page`. A card on a card is not permitted — flatten the component instead.
 
----
-
-## Border Usage
-
-| Token | When to use |
-|---|---|
-| `--color-border-default` | Card edges, input outlines, dividers |
-| `--color-border-strong` | Focus rings, active states, error outlines |
-| `--color-border-subtle` | Separators within a card (low emphasis) |
+The sidebar is exempt from this hierarchy. It uses `--sidebar` and its associated token family.
 
 ---
 
@@ -36,15 +38,33 @@ Cards use `--color-surface-card` as their background, never `--color-surface-pag
 | `--color-text-primary` | All default body and heading text |
 | `--color-text-secondary` | Supporting metadata, secondary labels |
 | `--color-text-disabled` | Text inside disabled components |
-| `--color-text-inverse` | Text on dark/filled backgrounds (primary buttons, status badges) |
+| `--color-text-inverse` | Text on dark/filled backgrounds |
 
 Never use `--color-text-secondary` for interactive labels — they must use `--color-text-primary` to maintain legibility and distinguish from inactive text.
 
 ---
 
-## Semantic State Colors
+## Border Usage
 
-Borrowed from LevelEleven's pacing system. Applied consistently wherever performance status, sync state, or feedback is communicated.
+| Token | When to use |
+|---|---|
+| `--color-border-default` | Card edges, input outlines, dividers |
+| `--color-border-strong` | Focus rings, active states, error outlines |
+| `--color-border-subtle` | Separators within a card |
+
+---
+
+## Accent — The Signal Color
+
+`--color-accent-primary` is On Air red. It is the most semantically loaded color in the system — it means *this is live, this matters now*. Treat it like the red light in the studio: never decorative, always meaningful.
+
+`--color-accent-secondary` is for hover states and supporting interactive elements — never as a primary signal.
+
+---
+
+## Status Colors
+
+Borrowed from LevelEleven's pacing system. Applied wherever performance status, sync state, or feedback is communicated.
 
 | Token | Meaning | Use |
 |---|---|---|
@@ -53,15 +73,4 @@ Borrowed from LevelEleven's pacing system. Applied consistently wherever perform
 | `--color-status-warning` | Behind / needs attention | Below pace, errors, destructive actions |
 | `--color-status-achieved` | Goal reached | 100%+ to goal — distinct from success |
 
-**Rule:** Status colors are for status — never repurpose them for decoration. A green badge always means positive performance, a red element always signals urgency or danger. Violating this erodes the entire color language.
-
----
-
-## Primary & Accent Colors
-
-| Token | Use |
-|---|---|
-| `--color-accent-primary` | Primary CTA buttons, active nav items, key interactive elements |
-| `--color-accent-secondary` | Supporting interactive elements, hover states, secondary actions |
-
-Use `--color-accent-primary` sparingly — one prominent element per view. If everything is accented, nothing is.
+Status colors are for status — never repurpose them for decoration. A green badge always means positive performance; a red element always signals urgency or danger. Violating this erodes the entire color language.

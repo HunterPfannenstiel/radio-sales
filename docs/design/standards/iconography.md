@@ -1,6 +1,6 @@
 # Iconography
 
-Standards for icon selection, sizing, stroke weight, and state treatment. The icon library is **Lucide React** throughout the product. Icon token sizes live in `tokens.md` — reference them by `--icon-size-*` name. Icon style (e.g., `ⓘ` for inline help) belongs here; tooltip anatomy belongs in [components.md](components.md).
+Standards for icon selection, sizing, stroke weight, and state treatment. The icon library is **Lucide React** throughout the product. Icon token sizes live in `globals.css` — reference them by `--icon-size-*` name. Icon style (e.g., `ⓘ` for inline help) belongs here; tooltip anatomy belongs in [components.md](components.md).
 
 ---
 

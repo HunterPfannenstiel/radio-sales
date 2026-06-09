@@ -1,0 +1,4 @@
+- For the rep dashboard, it will be how they navigate between weeks
+- Allow for clicking of the month --> Opens up a simple dialog that is rooted from the month and allows you to select any month. I'm thinking abbreviations in a 3x4 grid
+- Allow for clicking of the year --> Opens up a dialog to select the year, the dialoag is like on a spindle and has a curving affect. Initialize to selected year allow for any past - present year to be selected
+- Allow for clicking of the Week --> Opens up a calendar to the current month. This calendar allows picking of weeks and not specific days. The calendar will be lo-fi just showing the week number within a year at the very left, a dot denoting "Monday" and then a line across the span of the week. The whole row should be clickable. Clicking a row updates the date.
