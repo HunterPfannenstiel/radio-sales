@@ -19,6 +19,51 @@ function getMondayOfCurrentWeek(): Date {
   return monday
 }
 
+const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F'] as const
+
+function WeekDayStrip({ monday }: { monday: Date }) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return (
+    <div className="flex gap-6 px-1">
+      {WEEKDAY_LABELS.map((label, i) => {
+        const day = new Date(monday)
+        day.setDate(monday.getDate() + i)
+        const isToday = day.getTime() === today.getTime()
+        const filled = day.getTime() <= today.getTime()
+
+        return (
+          <div key={i} className="flex flex-col items-center gap-1">
+            <span
+              style={{
+                fontSize: 'var(--font-size-small)',
+                fontWeight: isToday ? 600 : undefined,
+                color: isToday ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
+              }}
+            >
+              {label}
+            </span>
+            <div
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: filled
+                  ? isToday
+                    ? 'var(--color-accent-primary)'
+                    : 'var(--color-text-secondary)'
+                  : 'transparent',
+                border: filled ? 'none' : '1px solid var(--color-border-default)',
+              }}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function DateNavigator({ date, onChange }: DateNavigatorProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -29,8 +74,9 @@ export function DateNavigator({ date, onChange }: DateNavigatorProps) {
 
   const weekLabel =
     date.getMonth() === weekEnd.getMonth()
-      ? `${date.toLocaleString('default', { month: 'short' })} ${date.getDate()} – ${weekEnd.getDate()}`
+      ? `${date.toLocaleString('default', { month: 'short' })} ${date.getDate()}–${weekEnd.getDate()}`
       : `${date.toLocaleString('default', { month: 'short' })} ${date.getDate()} – ${weekEnd.toLocaleString('default', { month: 'short' })} ${weekEnd.getDate()}`
+
 
   function handlePrevWeek() {
     const next = new Date(date)
@@ -51,23 +97,27 @@ export function DateNavigator({ date, onChange }: DateNavigatorProps) {
 
   return (
     <>
-      <div className="inline-flex items-center border rounded-lg px-1 w-52">
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handlePrevWeek}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
+      <div className="flex flex-col gap-2 w-full">
+        <div className="inline-flex items-center border rounded-lg px-1 w-full">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handlePrevWeek}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
 
-        <div className="flex-1 flex justify-center">
-          <Button variant="ghost" className="px-2 text-sm font-medium gap-1.5" onClick={() => setIsOpen(true)}>
-            {isCurrentWeek && (
-              <span className="text-xs leading-none" style={{ color: 'var(--color-accent-primary)' }}>●</span>
-            )}
-            {weekLabel}
+          <div className="flex-1 flex justify-center">
+            <Button variant="ghost" className="px-2 text-sm font-medium gap-1.5" onClick={() => setIsOpen(true)}>
+              {isCurrentWeek && (
+                <span className="text-xs leading-none" style={{ color: 'var(--color-accent-primary)' }}>●</span>
+              )}
+              {weekLabel}
+            </Button>
+          </div>
+
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleNextWeek}>
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleNextWeek}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+        <WeekDayStrip monday={date} />
       </div>
 
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) setIsOpen(false) }}>

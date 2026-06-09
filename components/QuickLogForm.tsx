@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Field, FieldGroup, FieldLabel, FieldDescription } from "@/components/ui/field"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   InputGroup,
   InputGroupAddon,
@@ -24,6 +23,12 @@ import { cn } from "@/lib/utils"
 import { useRequest } from "@/hooks/useRequest"
 import { useFetch } from "@/hooks/useFetch"
 import type { BusinessDTO } from "@/server/queries/SearchBusinessesQuery"
+
+function filterBusinesses(businesses: BusinessDTO[], query: string): BusinessDTO[] {
+  if (!query.trim()) return []
+  const lower = query.toLowerCase()
+  return businesses.filter((b) => b.name.toLowerCase().includes(lower))
+}
 
 export type QuickLogFormProps = {
   prefill?: { businessId?: string; businessName?: string } | null
@@ -67,7 +72,7 @@ const CONFIDENCE_STYLES: Record<string, { bg: string; color: string }> = {
     color: "var(--color-text-inverse)",
   },
   sure: {
-    bg: "color-mix(in oklch, var(--color-accent-primary) 60%, transparent)",
+    bg: "color-mix(in oklch, var(--color-accent-primary) 40%, transparent)",
     color: "var(--color-text-primary)",
   },
   expect: {
@@ -81,24 +86,26 @@ const CONFIDENCE_STYLES: Record<string, { bg: string; color: string }> = {
 }
 
 const OUTCOME_OPTIONS = [
-  { value: "sold", label: "Sold" },
-  { value: "not_sold", label: "Not sold" },
-  { value: "follow_up", label: "Follow up" },
+  { value: "yes", label: "Yes" },
+  { value: "pending", label: "Pending" },
+  { value: "no", label: "No" },
 ]
 
-const OUTCOME_STYLES: Record<string, { bg: string; color: string; border?: string }> = {
-  sold: {
+const OUTCOME_STYLES: Record<string, { bg: string; bgDim: string; color: string }> = {
+  yes: {
     bg: "var(--color-status-success)",
+    bgDim: "color-mix(in oklch, var(--color-status-success) 30%, transparent)",
     color: "var(--color-text-inverse)",
   },
-  not_sold: {
+  no: {
     bg: "var(--color-status-warning)",
+    bgDim: "color-mix(in oklch, var(--color-status-warning) 30%, transparent)",
     color: "var(--color-text-inverse)",
   },
-  follow_up: {
+  pending: {
     bg: "var(--color-surface-subtle)",
+    bgDim: "var(--color-surface-subtle)",
     color: "var(--color-text-primary)",
-    border: "var(--color-border-default)",
   },
 }
 
@@ -110,21 +117,21 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
   const [termValue, setTermValue] = useState("")
   const [termUnit, setTermUnit] = useState<"weeks" | "months">("weeks")
   const [confidence, setConfidence] = useState("")
-  const [outcome, setOutcome] = useState<"sold" | "not_sold" | "follow_up">("follow_up")
+  const [outcome, setOutcome] = useState<"yes" | "no" | "pending" | "">("")
 
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | undefined>(
     prefill?.businessId
   )
-  const [suggestions, setSuggestions] = useState<BusinessDTO[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const isBusinessLocked = Boolean(prefill?.businessName)
 
+  const { data: allBusinesses } = useFetch<BusinessDTO[]>("/api/businesses")
   const { data: recentBusinesses } = useFetch<BusinessDTO[]>("/api/businesses/recent")
 
-  const { execute: searchBusinesses } = useRequest<BusinessDTO[]>()
+  const suggestions = filterBusinesses(allBusinesses ?? [], business)
+
   const { execute: submitCallLog, loading, error: submitError } = useRequest<{
     callLogId: string
     businessId: string
@@ -164,20 +171,11 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
   function handleBusinessChange(value: string) {
     setBusiness(value)
     setSelectedBusinessId(undefined)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(async () => {
-      const results = await searchBusinesses(
-        `/api/businesses/search?q=${encodeURIComponent(value)}`
-      )
-      if (results) {
-        setSuggestions(results)
-        setShowSuggestions(results.length > 0)
-      }
-    }, 300)
+    setShowSuggestions(value.trim().length > 0)
   }
 
   function handleBusinessFocus() {
-    if (!isBusinessLocked && suggestions.length > 0) setShowSuggestions(true)
+    if (!isBusinessLocked && business.trim().length > 0) setShowSuggestions(true)
   }
 
   function handleSelectSuggestion(suggestion: BusinessDTO) {
@@ -196,7 +194,17 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
       setConfidence("")
     } else {
       setConfidence(value)
-      if (value === "in") setOutcome("sold")
+      if (value === "in") setOutcome("yes")
+    }
+  }
+
+  function handleOutcomeClick(value: "yes" | "no" | "pending") {
+    if (outcome === value) {
+      setOutcome("")
+      if (value === "yes") setConfidence("")
+    } else {
+      setOutcome(value)
+      if (value === "yes") setConfidence("in")
     }
   }
 
@@ -218,8 +226,8 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
         budget: budget ? Number(budget) : undefined,
         termValue: termValue ? Number(termValue) : undefined,
         termUnit,
-        confidence: confidence || undefined,
-        outcome,
+        confidence: outcome === "yes" ? "in" : (confidence || undefined),
+        outcome: outcome || undefined,
       }),
     })
     if (result) onClose()
@@ -228,40 +236,64 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {/* The Call section header */}
+        <div className="mb-4">
+          <div className="flex items-baseline justify-between">
+            <span
+              style={{
+                fontSize: "var(--font-size-h2)",
+                fontWeight: "var(--font-weight-bold)",
+                color: "var(--color-text-primary)",
+                fontFamily: "var(--font-family-heading)",
+                lineHeight: "var(--line-height-heading)",
+              }}
+            >
+              The Call
+            </span>
+          </div>
+        </div>
+
         <FieldGroup className="gap-6">
           {/* Business */}
           <Field>
-            <FieldLabel htmlFor="business">
-              Business <span className="text-destructive">*</span>
-            </FieldLabel>
-            <div ref={wrapperRef} className="relative">
-              <Input
-                id="business"
-                placeholder="Search businesses…"
-                value={business}
-                disabled={isBusinessLocked}
-                onChange={(e) => handleBusinessChange(e.target.value)}
-                onFocus={handleBusinessFocus}
-                className={cn(isBusinessLocked && "bg-muted text-muted-foreground")}
-              />
-              {showSuggestions && !isBusinessLocked && (
-                <ul className="absolute z-50 left-0 right-0 top-full mt-1 rounded-md border border-border bg-popover shadow-md overflow-hidden">
-                  {suggestions.map((s) => (
-                    <li key={s.id}>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault()
-                          handleSelectSuggestion(s)
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
-                      >
-                        {s.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+            <FieldLabel htmlFor="business" className="flex items-center gap-1.5">
+              Business
+              {!isBusinessLocked && !selectedBusinessId && business.trim().length > 0 && (
+                <span style={{ fontSize: "var(--font-size-micro)", color: "var(--color-status-info)" }}>
+                  · New
+                </span>
               )}
+            </FieldLabel>
+            <div className="flex flex-col">
+              <div ref={wrapperRef} className="relative">
+                <Input
+                  id="business"
+                  placeholder="Search businesses…"
+                  value={business}
+                  disabled={isBusinessLocked}
+                  onChange={(e) => handleBusinessChange(e.target.value)}
+                  onFocus={handleBusinessFocus}
+                  className={cn(isBusinessLocked && "bg-muted text-muted-foreground")}
+                />
+                {showSuggestions && !isBusinessLocked && (
+                  <ul className="absolute z-50 left-0 right-0 top-full mt-1 rounded-md border border-border bg-popover shadow-md overflow-hidden">
+                    {suggestions.map((s) => (
+                      <li key={s.id}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            handleSelectSuggestion(s)
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
+                        >
+                          {s.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
             {showMruChips && (
               <div className="mt-2">
@@ -275,7 +307,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                   Recent
                 </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {recentBusinesses!.slice(0, 3).map((b) => (
+                  {recentBusinesses!.slice(0, 5).map((b) => (
                     <button
                       key={b.id}
                       type="button"
@@ -294,45 +326,57 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
           {/* Stage */}
           <Field>
             <FieldLabel>
-              Stage <span className="text-destructive">*</span>
+              Stage
             </FieldLabel>
-            <ToggleGroup
-              type="single"
-              orientation="vertical"
-              variant="outline"
-              className="w-full"
-              value={stage}
-              onValueChange={handleStageChange}
-            >
-              {STAGES.map((s) => (
-                <ToggleGroupItem key={s.value} value={s.value} className="w-full justify-start">
-                  {s.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            <div role="group" className="flex flex-wrap gap-1">
+              {STAGES.map((s) => {
+                const isSelected = stage === s.value
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => handleStageChange(isSelected ? "" : s.value)}
+                    className="rounded-md px-3 py-2 text-sm font-medium transition-all"
+                    style={{
+                      background: isSelected ? "var(--color-accent-primary)" : "transparent",
+                      color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
+                      border: isSelected ? undefined : "1px solid var(--color-border-default)",
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                )
+              })}
+            </div>
           </Field>
 
-          {/* What's Next — inline radio list */}
+          {/* What's Next */}
           <Field>
             <FieldLabel>
-              What&apos;s Next <span className="text-destructive">*</span>
+              What&apos;s Next
             </FieldLabel>
             {hasContext ? (
               <div className="flex flex-col gap-1.5">
-                <ToggleGroup
-                  type="single"
-                  orientation="vertical"
-                  variant="outline"
-                  className="w-full"
-                  value={whatNext}
-                  onValueChange={(val) => setWhatNext(val ?? "")}
-                >
-                  {contextualOptions.map((s) => (
-                    <ToggleGroupItem key={s.value} value={s.value} className="w-full justify-start">
-                      {s.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+                <div role="group" className="flex flex-wrap gap-1">
+                  {contextualOptions.map((s) => {
+                    const isSelected = whatNext === s.value
+                    return (
+                      <button
+                        key={s.value}
+                        type="button"
+                        onClick={() => setWhatNext(isSelected ? "" : s.value)}
+                        className="rounded-md px-3 py-2 text-sm font-medium transition-all"
+                        style={{
+                          background: isSelected ? "var(--color-accent-primary)" : "transparent",
+                          color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
+                          border: isSelected ? undefined : "1px solid var(--color-border-default)",
+                        }}
+                      >
+                        {s.label}
+                      </button>
+                    )
+                  })}
+                </div>
                 <div className="flex items-center gap-2 py-0.5">
                   <hr
                     className="flex-1"
@@ -351,38 +395,137 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                     style={{ borderColor: "var(--color-border-subtle)" }}
                   />
                 </div>
-                <ToggleGroup
-                  type="single"
-                  orientation="vertical"
-                  variant="outline"
-                  className="w-full"
-                  value={whatNext}
-                  onValueChange={(val) => setWhatNext(val ?? "")}
-                >
-                  {otherOptions.map((s) => (
-                    <ToggleGroupItem key={s.value} value={s.value} className="w-full justify-start">
-                      {s.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+                <div role="group" className="flex flex-wrap gap-1">
+                  {otherOptions.map((s) => {
+                    const isSelected = whatNext === s.value
+                    return (
+                      <button
+                        key={s.value}
+                        type="button"
+                        onClick={() => setWhatNext(isSelected ? "" : s.value)}
+                        className="rounded-md px-3 py-2 text-sm font-medium transition-all"
+                        style={{
+                          background: isSelected ? "var(--color-accent-primary)" : "transparent",
+                          color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
+                          border: isSelected ? undefined : "1px solid var(--color-border-default)",
+                        }}
+                      >
+                        {s.label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             ) : (
-              <ToggleGroup
-                type="single"
-                orientation="vertical"
-                variant="outline"
-                className="w-full"
-                value={whatNext}
-                onValueChange={(val) => setWhatNext(val ?? "")}
-              >
-                {NEXT_STEPS.map((s) => (
-                  <ToggleGroupItem key={s.value} value={s.value} className="w-full justify-start">
-                    {s.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+              <div role="group" className="flex flex-wrap gap-1">
+                {NEXT_STEPS.map((s) => {
+                  const isSelected = whatNext === s.value
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => setWhatNext(isSelected ? "" : s.value)}
+                      className="rounded-md px-3 py-2 text-sm font-medium transition-all"
+                      style={{
+                        background: isSelected ? "var(--color-accent-primary)" : "transparent",
+                        color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
+                        border: isSelected ? undefined : "1px solid var(--color-border-default)",
+                      }}
+                    >
+                      {s.label}
+                    </button>
+                  )
+                })}
+              </div>
             )}
           </Field>
+        </FieldGroup>
+
+        {/* How'd it go? section */}
+        <div className="mt-6 mb-4">
+          <hr style={{ borderColor: "var(--color-border-subtle)" }} />
+          <div className="flex items-baseline justify-between mt-3">
+            <span
+              style={{
+                fontSize: "var(--font-size-h2)",
+                fontWeight: "var(--font-weight-bold)",
+                color: "var(--color-text-primary)",
+                fontFamily: "var(--font-family-heading)",
+                lineHeight: "var(--line-height-heading)",
+              }}
+            >
+              How&apos;d it go?
+            </span>
+            <span
+              style={{
+                fontSize: "var(--font-size-small)",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              Optional
+            </span>
+          </div>
+        </div>
+
+        <FieldGroup className="gap-6">
+          {/* Outcome — semantic color pills */}
+          <Field>
+            <FieldLabel>Outcome</FieldLabel>
+            <div role="group" className="flex w-full gap-1">
+              {OUTCOME_OPTIONS.map((opt) => {
+                const isSelected = outcome === opt.value
+                const styles = OUTCOME_STYLES[opt.value]
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleOutcomeClick(opt.value as "yes" | "no" | "pending")}
+                    className="flex-1 rounded-md py-2 text-sm font-medium transition-all"
+                    style={{
+                      background: isSelected ? styles.bg : styles.bgDim,
+                      color: isSelected ? styles.color : "var(--color-text-primary)",
+                      border: isSelected && opt.value === "pending" ? "2px solid var(--color-border-strong)" : "2px solid transparent",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
+          </Field>
+
+          {/* Confidence — opacity gradient pills, animates out when outcome is yes */}
+          <div
+            className={cn(
+              "overflow-hidden transition-all",
+              outcome !== "yes" ? "opacity-100 max-h-44" : "opacity-0 max-h-0"
+            )}
+            style={{ transitionDuration: "var(--duration-base)" }}
+          >
+            <Field>
+              <FieldLabel>Confidence</FieldLabel>
+              <div role="group" className="flex w-full gap-1">
+                {CONFIDENCE_OPTIONS.filter((o) => o.value !== "in").map((opt) => {
+                  const isSelected = confidence === opt.value
+                  const styles = CONFIDENCE_STYLES[opt.value]
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleConfidenceClick(opt.value)}
+                      className="flex-1 rounded-md py-2 text-sm font-medium transition-all"
+                      style={{
+                        background: isSelected ? "var(--color-accent-primary)" : styles.bg,
+                        color: isSelected ? "var(--color-text-inverse)" : styles.color,
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </Field>
+          </div>
         </FieldGroup>
 
         {/* Ask section divider */}
@@ -485,70 +628,6 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 ≈ {approxMonths} {approxMonths === 1 ? "month" : "months"}
               </p>
             )}
-          </Field>
-
-          {/* Confidence — opacity gradient pills */}
-          <Field>
-            <FieldLabel>Confidence</FieldLabel>
-            <div role="group" className="flex w-full gap-1">
-              {CONFIDENCE_OPTIONS.map((opt) => {
-                const isSelected = confidence === opt.value
-                const styles = CONFIDENCE_STYLES[opt.value]
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => handleConfidenceClick(opt.value)}
-                    className="flex-1 rounded-md py-2 text-sm font-medium transition-all"
-                    style={
-                      isSelected
-                        ? {
-                            background: "var(--color-accent-primary)",
-                            color: "var(--color-text-inverse)",
-                            outline: "2px solid var(--color-accent-primary)",
-                            outlineOffset: "2px",
-                          }
-                        : {
-                            background: styles.bg,
-                            color: styles.color,
-                          }
-                    }
-                  >
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
-            <FieldDescription>Most confident → Least confident</FieldDescription>
-          </Field>
-
-          {/* Outcome — semantic color pills */}
-          <Field>
-            <FieldLabel>Outcome</FieldLabel>
-            <div role="group" className="flex w-full gap-1">
-              {OUTCOME_OPTIONS.map((opt) => {
-                const isSelected = outcome === opt.value
-                const styles = OUTCOME_STYLES[opt.value]
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setOutcome(opt.value as "sold" | "not_sold" | "follow_up")}
-                    className="flex-1 rounded-md py-2 text-sm font-medium transition-all"
-                    style={{
-                      background: styles.bg,
-                      color: styles.color,
-                      opacity: isSelected ? 1 : 0.5,
-                      outline: isSelected ? "2px solid var(--color-accent-primary)" : undefined,
-                      outlineOffset: isSelected ? "2px" : undefined,
-                      border: styles.border ? `1px solid ${styles.border}` : undefined,
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
           </Field>
         </FieldGroup>
       </div>

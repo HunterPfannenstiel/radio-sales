@@ -5,11 +5,6 @@ import {
   PhoneCall,
   LayoutDashboard,
   CheckSquare,
-  TrendingUp,
-  Building2,
-  BarChart2,
-  Settings,
-  User,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useQuickLog } from "@/components/QuickLogContext"
@@ -219,72 +214,6 @@ function SidebarNavGroup({
 }
 
 // ---------------------------------------------------------------------------
-// SidebarPaceBadge
-// ---------------------------------------------------------------------------
-
-function SidebarPaceBadge() {
-  // Mocked static data — wired to live data later
-  const month = "June"
-  const pct = 68
-  const progressColor = "var(--color-status-warning)" // 68% is behind pace
-
-  return (
-    <div
-      className="mx-3 my-1"
-      style={{
-        borderRadius: "var(--radius-card)",
-        background: "var(--sidebar-accent)",
-        padding: "10px 12px",
-      }}
-    >
-      {/* Header row: dot + label */}
-      <div className="flex items-center gap-1.5 mb-2">
-        <span
-          className="shrink-0 rounded-full"
-          style={{
-            width: "6px",
-            height: "6px",
-            background: progressColor,
-            flexShrink: 0,
-          }}
-        />
-        <span
-          style={{
-            fontFamily: "var(--font-family-heading)",
-            fontSize: "var(--font-size-small)",
-            fontWeight: "var(--font-weight-medium)",
-            color: "var(--sidebar-accent-foreground)",
-            letterSpacing: "0.02em",
-          }}
-        >
-          {month} · {pct}%
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div
-        style={{
-          height: "4px",
-          borderRadius: "9999px",
-          background: "var(--sidebar-border)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: "100%",
-            background: progressColor,
-            borderRadius: "9999px",
-            transition: "width var(--duration-base) ease-out",
-          }}
-        />
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // DesktopSidebar (exported)
 // ---------------------------------------------------------------------------
 
@@ -306,54 +235,6 @@ const primaryNav: NavItem[] = [
       />
     ),
     href: "/whats-next",
-  },
-  {
-    label: "Pipeline",
-    icon: (
-      <TrendingUp
-        style={{ width: "var(--icon-size-md)", height: "var(--icon-size-md)" }}
-      />
-    ),
-    href: "#",
-  },
-  {
-    label: "Accounts",
-    icon: (
-      <Building2
-        style={{ width: "var(--icon-size-md)", height: "var(--icon-size-md)" }}
-      />
-    ),
-    href: "#",
-  },
-  {
-    label: "Coaching",
-    icon: (
-      <BarChart2
-        style={{ width: "var(--icon-size-md)", height: "var(--icon-size-md)" }}
-      />
-    ),
-    href: "#",
-  },
-]
-
-const secondaryNav: NavItem[] = [
-  {
-    label: "Settings",
-    icon: (
-      <Settings
-        style={{ width: "var(--icon-size-md)", height: "var(--icon-size-md)" }}
-      />
-    ),
-    href: "#",
-  },
-  {
-    label: "Profile",
-    icon: (
-      <User
-        style={{ width: "var(--icon-size-md)", height: "var(--icon-size-md)" }}
-      />
-    ),
-    href: "#",
   },
 ]
 
@@ -384,23 +265,9 @@ export function DesktopSidebar() {
           pathname={pathname}
         />
 
-        {/* 4. Pace badge */}
-        <div className="-mx-3">
-          <SidebarPaceBadge />
-        </div>
+
       </div>
 
-      {/* 5. Secondary nav — pinned bottom */}
-      <div
-        className="px-3 py-3 shrink-0"
-        style={{ borderTop: "1px solid var(--sidebar-border)" }}
-      >
-        <SidebarNavGroup
-          label="Account"
-          items={secondaryNav}
-          pathname={pathname}
-        />
-      </div>
     </aside>
   )
 }

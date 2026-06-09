@@ -54,7 +54,7 @@ export function BusinessCard({ business, onPress }: BusinessCardProps) {
     <a
       href="#"
       onClick={handleCardPress}
-      className="block rounded-[--radius-card] border transition-[background-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="block rounded-[var(--radius-card)] border transition-[background-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{
         background: "var(--color-surface-card)",
         borderColor: "var(--color-border-default)",

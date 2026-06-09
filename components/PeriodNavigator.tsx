@@ -115,7 +115,7 @@ export function PeriodNavigator({
 
   return (
     <div
-      className="flex flex-col rounded-[--radius-card]"
+      className="flex flex-col rounded-[var(--radius-card)]"
       style={{
         background: "var(--color-surface-subtle)",
         padding: "var(--spacing-sm)",

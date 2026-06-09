@@ -70,6 +70,14 @@ day2.setUTCHours(14, 0, 0, 0);
 const day3 = nthWorkingDayOfMonth(year, month, 3);
 day3.setUTCHours(11, 0, 0, 0);
 
+// Previous month sold deals
+const prevMonthYear = month === 0 ? year - 1 : year;
+const prevMonth = month === 0 ? 11 : month - 1;
+const prevDay1 = nthWorkingDayOfMonth(prevMonthYear, prevMonth, 1);
+prevDay1.setUTCHours(10, 0, 0, 0);
+const prevDay2 = nthWorkingDayOfMonth(prevMonthYear, prevMonth, 2);
+prevDay2.setUTCHours(14, 0, 0, 0);
+
 // Weekly activity: spread across Mon–Fri of the current ISO week
 // If today is a weekend, use last week's Monday so logs fall in a completed week
 const todayDow = now.getUTCDay();
@@ -103,6 +111,30 @@ type CallDef = {
   confidence?: string;
   loggedAt: string;
 };
+
+// Two won deals (sold last month)
+const PREV_MONTH_SOLD_CALLS: CallDef[] = [
+  {
+    businessName: "Lakeside Brewing",
+    stage: "close",
+    whatNext: "send_contract",
+    outcome: "sold",
+    budget: 5_400,
+    termValue: 3,
+    termUnit: "months",
+    loggedAt: prevDay1.toISOString(),
+  },
+  {
+    businessName: "Downtown Dental",
+    stage: "close",
+    whatNext: "send_contract",
+    outcome: "sold",
+    budget: 6_000,
+    termValue: 2,
+    termUnit: "months",
+    loggedAt: prevDay2.toISOString(),
+  },
+];
 
 // Two won deals (sold this month)
 const SOLD_CALLS: CallDef[] = [
@@ -218,7 +250,7 @@ async function run() {
     script: { repName: REP_NAME as string },
   });
 
-  const allCalls = [...SOLD_CALLS, ...PIPELINE_CALLS, ...WEEKLY_CALLS];
+  const allCalls = [...PREV_MONTH_SOLD_CALLS, ...SOLD_CALLS, ...PIPELINE_CALLS, ...WEEKLY_CALLS];
   console.log(`Seeding ${allCalls.length} call logs...`);
 
   for (const call of allCalls) {

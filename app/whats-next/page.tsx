@@ -10,6 +10,7 @@ import { InteractionHistory, type InteractionEntry } from "@/components/Interact
 import { Separator } from "@/components/ui/separator"
 import { useQuickLog } from "@/components/QuickLogContext"
 import { useFetch } from "@/hooks/useFetch"
+import { PageHeader } from "@/components/PageHeader"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -91,50 +92,6 @@ function toBusinessViewData(account: WhatsNextAccount): BusinessViewData {
   }
 }
 
-// ---------------------------------------------------------------------------
-// WhatsNextHeader
-// ---------------------------------------------------------------------------
-
-interface WhatsNextHeaderProps {
-  accountCount: number
-}
-
-function WhatsNextHeader({ accountCount }: WhatsNextHeaderProps) {
-  return (
-    <div className="flex items-baseline gap-3">
-      <h1
-        className="font-bold tracking-tight uppercase"
-        style={{
-          fontSize: "var(--font-size-h1)",
-          lineHeight: "var(--line-height-heading)",
-          color: "var(--color-text-primary)",
-        }}
-      >
-        What&apos;s Next
-      </h1>
-      <span
-        aria-hidden
-        style={{
-          color: "var(--color-accent-primary)",
-          fontSize: "var(--font-size-h3)",
-          lineHeight: 1,
-        }}
-      >
-        ●
-      </span>
-      <span
-        style={{
-          fontSize: "var(--font-size-body)",
-          color: "var(--color-text-secondary)",
-          fontWeight: "var(--font-weight-regular)",
-        }}
-        aria-label={`${accountCount} account${accountCount !== 1 ? "s" : ""}`}
-      >
-        {accountCount} {accountCount !== 1 ? "accounts" : "account"}
-      </span>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // WhatsNextCard — unique layout per spec
@@ -165,7 +122,7 @@ function WhatsNextCard({ account, today, onCardClick, onLogCall }: WhatsNextCard
 
   return (
     <div
-      className="rounded-[--radius-card] border overflow-hidden"
+      className="rounded-[var(--radius-card)] border overflow-hidden"
       style={{
         background: "var(--color-surface-card)",
         borderColor: "var(--color-border-default)",
@@ -281,7 +238,7 @@ function WhatsNextCard({ account, today, onCardClick, onLogCall }: WhatsNextCard
 function WhatsNextSkeletonCard() {
   return (
     <div
-      className="rounded-[--radius-card] border overflow-hidden"
+      className="rounded-[var(--radius-card)] border overflow-hidden"
       style={{
         background: "var(--color-surface-card)",
         borderColor: "var(--color-border-default)",
@@ -467,7 +424,16 @@ export default function WhatsNextPage() {
   return (
     <>
       <div className="p-4 md:p-8 flex flex-col gap-4 max-w-3xl mx-auto w-full">
-        <WhatsNextHeader accountCount={loading ? 0 : accounts.length} />
+        <PageHeader
+          title="What's Next"
+          badge={
+            loading ? undefined : (
+              <span aria-label={`${accounts.length} account${accounts.length !== 1 ? "s" : ""}`}>
+                {accounts.length} {accounts.length !== 1 ? "accounts" : "account"}
+              </span>
+            )
+          }
+        />
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 4 }).map((_, i) => (

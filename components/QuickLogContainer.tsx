@@ -46,7 +46,7 @@ export function QuickLogContainer() {
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && close()} modal>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden flex flex-col max-h-[90vh]">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden flex flex-col h-[90vh]">
           <DialogHeader className="px-4 pt-4 pb-2 shrink-0">
             <DialogTitle>Log Call</DialogTitle>
           </DialogHeader>

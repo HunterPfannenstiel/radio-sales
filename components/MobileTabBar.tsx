@@ -5,8 +5,6 @@ import {
   LayoutDashboard,
   CheckSquare,
   PhoneCall,
-  TrendingUp,
-  MoreHorizontal,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useQuickLog } from "@/components/QuickLogContext"
@@ -187,6 +185,10 @@ export function MobileTabBar() {
       href: "/",
     },
     {
+      kind: "center",
+      label: "Log Call",
+    },
+    {
       kind: "link",
       label: "What's Next",
       icon: (
@@ -198,36 +200,6 @@ export function MobileTabBar() {
         />
       ),
       href: "/whats-next",
-    },
-    {
-      kind: "center",
-      label: "Log Call",
-    },
-    {
-      kind: "link",
-      label: "Pipeline",
-      icon: (
-        <TrendingUp
-          style={{
-            width: "var(--icon-size-md)",
-            height: "var(--icon-size-md)",
-          }}
-        />
-      ),
-      href: "#",
-    },
-    {
-      kind: "link",
-      label: "More",
-      icon: (
-        <MoreHorizontal
-          style={{
-            width: "var(--icon-size-md)",
-            height: "var(--icon-size-md)",
-          }}
-        />
-      ),
-      href: "#",
     },
   ]
 
