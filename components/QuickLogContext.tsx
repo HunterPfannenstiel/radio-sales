@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState } from "react"
+import React, { createContext, useCallback, useContext, useRef, useState } from "react"
 
 type QuickLogPrefill = {
   businessId?: string
@@ -12,6 +12,8 @@ type QuickLogContextValue = {
   prefill: QuickLogPrefill | null
   open: (prefill?: QuickLogPrefill) => void
   close: () => void
+  onCallLogged: (fn: () => void) => () => void
+  notifyCallLogged: () => void
 }
 
 const QuickLogContext = createContext<QuickLogContextValue | null>(null)
@@ -19,6 +21,7 @@ const QuickLogContext = createContext<QuickLogContextValue | null>(null)
 export function QuickLogProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [prefill, setPrefill] = useState<QuickLogPrefill | null>(null)
+  const listenersRef = useRef<Set<() => void>>(new Set())
 
   function open(prefill?: QuickLogPrefill) {
     setPrefill(prefill ?? null)
@@ -30,8 +33,17 @@ export function QuickLogProvider({ children }: { children: React.ReactNode }) {
     setPrefill(null)
   }
 
+  const onCallLogged = useCallback((fn: () => void) => {
+    listenersRef.current.add(fn)
+    return () => { listenersRef.current.delete(fn) }
+  }, [])
+
+  const notifyCallLogged = useCallback(() => {
+    listenersRef.current.forEach((fn) => fn())
+  }, [])
+
   return (
-    <QuickLogContext.Provider value={{ isOpen, prefill, open, close }}>
+    <QuickLogContext.Provider value={{ isOpen, prefill, open, close, onCallLogged, notifyCallLogged }}>
       {children}
     </QuickLogContext.Provider>
   )

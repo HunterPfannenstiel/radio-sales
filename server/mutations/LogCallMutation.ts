@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store, emptyStore } from "@/lib/blob/schema";
+import { type Store, type CallOutcome, type CallConfidence, emptyStore } from "@/lib/blob/schema";
 
 export type LogCallPayload = {
   repId: string;
@@ -11,8 +11,8 @@ export type LogCallPayload = {
   budget?: number;
   termValue?: number;
   termUnit?: "weeks" | "months";
-  confidence?: string;
-  outcome: "sold" | "not_sold" | "follow_up";
+  confidence?: CallConfidence;
+  outcome?: CallOutcome;
   loggedAt?: string;
 };
 
@@ -93,9 +93,9 @@ export class BlobLogCallMutation implements ILogCallMutation {
       businessId: resolvedBusinessId,
       stage,
       whatNext,
-      outcome,
       loggedAt: payload.loggedAt ?? new Date().toISOString(),
     };
+    if (outcome !== undefined) callLog.outcome = outcome;
     if (budget !== undefined) callLog.budget = budget;
     if (termValue !== undefined) callLog.termValue = termValue;
     if (termUnit !== undefined) callLog.termUnit = termUnit;

@@ -104,11 +104,11 @@ type CallDef = {
   businessName: string;
   stage: string;
   whatNext: "followup_call" | "send_proposal" | "schedule_demo" | "send_contract" | "check_in";
-  outcome: "sold" | "not_sold" | "follow_up";
+  outcome: "yes" | "no" | "pending";
   budget?: number;
   termValue?: number;
   termUnit?: "weeks" | "months";
-  confidence?: string;
+  confidence?: "in" | "sure" | "expect" | "hope";
   loggedAt: string;
 };
 
@@ -118,7 +118,7 @@ const PREV_MONTH_SOLD_CALLS: CallDef[] = [
     businessName: "Lakeside Brewing",
     stage: "close",
     whatNext: "send_contract",
-    outcome: "sold",
+    outcome: "yes",
     budget: 5_400,
     termValue: 3,
     termUnit: "months",
@@ -128,7 +128,7 @@ const PREV_MONTH_SOLD_CALLS: CallDef[] = [
     businessName: "Downtown Dental",
     stage: "close",
     whatNext: "send_contract",
-    outcome: "sold",
+    outcome: "yes",
     budget: 6_000,
     termValue: 2,
     termUnit: "months",
@@ -142,7 +142,7 @@ const SOLD_CALLS: CallDef[] = [
     businessName: "McDonald's",
     stage: "close",
     whatNext: "send_contract",
-    outcome: "sold",
+    outcome: "yes",
     budget: 4_800,
     termValue: 4,
     termUnit: "months",
@@ -152,7 +152,7 @@ const SOLD_CALLS: CallDef[] = [
     businessName: "Regional Auto Group",
     stage: "close",
     whatNext: "send_contract",
-    outcome: "sold",
+    outcome: "yes",
     budget: 7_500,
     termValue: 3,
     termUnit: "months",
@@ -166,33 +166,33 @@ const PIPELINE_CALLS: CallDef[] = [
     businessName: "Sunrise Healthcare",
     stage: "present",
     whatNext: "followup_call",
-    outcome: "follow_up",
+    outcome: "pending",
     budget: 3_000,
     termValue: 3,
     termUnit: "months",
-    confidence: "SURE",
+    confidence: "sure",
     loggedAt: day3.toISOString(),
   },
   {
     businessName: "The Pizza House",
     stage: "uncover",
     whatNext: "send_proposal",
-    outcome: "follow_up",
+    outcome: "pending",
     budget: 4_500,
     termValue: 3,
     termUnit: "months",
-    confidence: "EXPECT",
+    confidence: "expect",
     loggedAt: day3.toISOString(),
   },
   {
     businessName: "City Toyota",
     stage: "approach",
     whatNext: "followup_call",
-    outcome: "follow_up",
+    outcome: "pending",
     budget: 6_000,
     termValue: 3,
     termUnit: "months",
-    confidence: "HOPE",
+    confidence: "hope",
     loggedAt: day3.toISOString(),
   },
 ];
@@ -223,9 +223,9 @@ const WEEKLY_CALLS: CallDef[] = weekTimestamps.map((loggedAt, i) => {
     businessName: WEEKLY_BUSINESSES[i],
     stage: "approach",
     whatNext: "followup_call",
-    outcome: "follow_up",
+    outcome: "pending",
     ...(withAsk
-      ? { budget: 1_500 + i * 300, termValue: 3, termUnit: "months" as const, confidence: "HOPE" }
+      ? { budget: 1_500 + i * 300, termValue: 3, termUnit: "months" as const, confidence: "hope" as const }
       : {}),
     loggedAt,
   };

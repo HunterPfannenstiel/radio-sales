@@ -1,12 +1,12 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store } from "@/lib/blob/schema";
+import { type Store, type CallOutcome } from "@/lib/blob/schema";
 
 export type InteractionHistoryEntryDTO = {
   id: string;
   date: string;
   stage: string;
-  outcome: "sold" | "not_sold" | "follow_up";
+  outcome?: CallOutcome;
   ask?: { amount: number; term: string; confidence: string };
   nextStep: string;
 };

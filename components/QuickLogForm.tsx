@@ -22,6 +22,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { useRequest } from "@/hooks/useRequest"
 import { useFetch } from "@/hooks/useFetch"
+import { useQuickLog } from "@/components/QuickLogContext"
 import type { BusinessDTO } from "@/server/queries/SearchBusinessesQuery"
 
 function filterBusinesses(businesses: BusinessDTO[], query: string): BusinessDTO[] {
@@ -50,14 +51,6 @@ const NEXT_STEPS = [
   { value: "send_contract", label: "Send contract" },
   { value: "check_in", label: "Check in" },
 ]
-
-const WHATS_NEXT_CONTEXT: Record<string, string[]> = {
-  approach: ["followup_call", "schedule_demo"],
-  uncover: ["followup_call", "send_proposal", "schedule_demo"],
-  present: ["send_contract", "send_proposal", "followup_call"],
-  close: ["send_contract", "followup_call"],
-  service_upsell: ["check_in", "followup_call"],
-}
 
 const CONFIDENCE_OPTIONS = [
   { value: "in", label: "IN" },
@@ -110,6 +103,7 @@ const OUTCOME_STYLES: Record<string, { bg: string; bgDim: string; color: string 
 }
 
 export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
+  const { notifyCallLogged } = useQuickLog()
   const [business, setBusiness] = useState(prefill?.businessName ?? "")
   const [stage, setStage] = useState("")
   const [whatNext, setWhatNext] = useState("")
@@ -145,13 +139,6 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
 
   const canSubmit =
     business.trim().length > 0 && stage.length > 0 && whatNext.length > 0 && !loading
-
-  const contextualKeys = stage ? (WHATS_NEXT_CONTEXT[stage] ?? []) : []
-  const contextualOptions = contextualKeys
-    .map((k) => NEXT_STEPS.find((s) => s.value === k))
-    .filter((s): s is (typeof NEXT_STEPS)[number] => Boolean(s))
-  const otherOptions = NEXT_STEPS.filter((s) => !contextualKeys.includes(s.value))
-  const hasContext = contextualOptions.length > 0
 
   const showMruChips =
     !isBusinessLocked &&
@@ -230,7 +217,10 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
         outcome: outcome || undefined,
       }),
     })
-    if (result) onClose()
+    if (result) {
+      notifyCallLogged()
+      onClose()
+    }
   }
 
   return (
@@ -273,6 +263,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                   disabled={isBusinessLocked}
                   onChange={(e) => handleBusinessChange(e.target.value)}
                   onFocus={handleBusinessFocus}
+                  autoComplete="off"
                   className={cn(isBusinessLocked && "bg-muted text-muted-foreground")}
                 />
                 {showSuggestions && !isBusinessLocked && (
@@ -355,89 +346,26 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
             <FieldLabel>
               What&apos;s Next
             </FieldLabel>
-            {hasContext ? (
-              <div className="flex flex-col gap-1.5">
-                <div role="group" className="flex flex-wrap gap-1">
-                  {contextualOptions.map((s) => {
-                    const isSelected = whatNext === s.value
-                    return (
-                      <button
-                        key={s.value}
-                        type="button"
-                        onClick={() => setWhatNext(isSelected ? "" : s.value)}
-                        className="rounded-md px-3 py-2 text-sm font-medium transition-all"
-                        style={{
-                          background: isSelected ? "var(--color-accent-primary)" : "transparent",
-                          color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
-                          border: isSelected ? undefined : "1px solid var(--color-border-default)",
-                        }}
-                      >
-                        {s.label}
-                      </button>
-                    )
-                  })}
-                </div>
-                <div className="flex items-center gap-2 py-0.5">
-                  <hr
-                    className="flex-1"
-                    style={{ borderColor: "var(--color-border-subtle)" }}
-                  />
-                  <span
+            <div role="group" className="flex flex-wrap gap-1">
+              {NEXT_STEPS.map((s) => {
+                const isSelected = whatNext === s.value
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setWhatNext(isSelected ? "" : s.value)}
+                    className="rounded-md px-3 py-2 text-sm font-medium transition-all"
                     style={{
-                      fontSize: "var(--font-size-small)",
-                      color: "var(--color-text-secondary)",
+                      background: isSelected ? "var(--color-accent-primary)" : "transparent",
+                      color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
+                      border: isSelected ? undefined : "1px solid var(--color-border-default)",
                     }}
                   >
-                    Other options
-                  </span>
-                  <hr
-                    className="flex-1"
-                    style={{ borderColor: "var(--color-border-subtle)" }}
-                  />
-                </div>
-                <div role="group" className="flex flex-wrap gap-1">
-                  {otherOptions.map((s) => {
-                    const isSelected = whatNext === s.value
-                    return (
-                      <button
-                        key={s.value}
-                        type="button"
-                        onClick={() => setWhatNext(isSelected ? "" : s.value)}
-                        className="rounded-md px-3 py-2 text-sm font-medium transition-all"
-                        style={{
-                          background: isSelected ? "var(--color-accent-primary)" : "transparent",
-                          color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
-                          border: isSelected ? undefined : "1px solid var(--color-border-default)",
-                        }}
-                      >
-                        {s.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div role="group" className="flex flex-wrap gap-1">
-                {NEXT_STEPS.map((s) => {
-                  const isSelected = whatNext === s.value
-                  return (
-                    <button
-                      key={s.value}
-                      type="button"
-                      onClick={() => setWhatNext(isSelected ? "" : s.value)}
-                      className="rounded-md px-3 py-2 text-sm font-medium transition-all"
-                      style={{
-                        background: isSelected ? "var(--color-accent-primary)" : "transparent",
-                        color: isSelected ? "var(--color-text-inverse)" : "var(--color-text-primary)",
-                        border: isSelected ? undefined : "1px solid var(--color-border-default)",
-                      }}
-                    >
-                      {s.label}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
+                    {s.label}
+                  </button>
+                )
+              })}
+            </div>
           </Field>
         </FieldGroup>
 
@@ -590,6 +518,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
+                autoComplete="off"
                 min={0}
               />
             </InputGroup>
@@ -605,6 +534,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={termValue}
                 onChange={(e) => setTermValue(e.target.value)}
+                autoComplete="off"
                 className="flex-1"
                 min={0}
               />

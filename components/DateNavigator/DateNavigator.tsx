@@ -26,7 +26,7 @@ function WeekDayStrip({ monday }: { monday: Date }) {
   today.setHours(0, 0, 0, 0)
 
   return (
-    <div className="flex gap-6 px-1">
+    <div className="flex gap-6 px-1 justify-center">
       {WEEKDAY_LABELS.map((label, i) => {
         const day = new Date(monday)
         day.setDate(monday.getDate() + i)

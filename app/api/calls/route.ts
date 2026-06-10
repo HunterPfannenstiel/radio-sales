@@ -2,17 +2,18 @@ import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { Mutations } from "@/server/mutations";
 import { Roles } from "@/server/roles/Roles";
+import { CALL_OUTCOMES, CALL_CONFIDENCES, WHAT_NEXT_OPTIONS, TERM_UNITS } from "@/lib/blob/schema";
 
 const logCallBodySchema = z.object({
   businessName: z.string().min(1),
   businessId: z.string().optional(),
   stage: z.string().min(1),
-  whatNext: z.enum(["followup_call", "send_proposal", "schedule_demo", "send_contract", "check_in"]),
+  whatNext: z.enum(WHAT_NEXT_OPTIONS),
   budget: z.number().optional(),
   termValue: z.number().optional(),
-  termUnit: z.enum(["weeks", "months"]).optional(),
-  confidence: z.string().optional(),
-  outcome: z.enum(["sold", "not_sold", "follow_up"]),
+  termUnit: z.enum(TERM_UNITS).optional(),
+  confidence: z.enum(CALL_CONFIDENCES).optional(),
+  outcome: z.enum(CALL_OUTCOMES).optional(),
 });
 
 export async function POST(request: NextRequest) {

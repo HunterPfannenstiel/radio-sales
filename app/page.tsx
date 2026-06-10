@@ -1,11 +1,13 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Target, TrendingUp } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { useFetch } from "@/hooks/useFetch"
+import { useQuickLog } from "@/components/QuickLogContext"
 import { DateNavigator } from "@/components/DateNavigator/DateNavigator"
 import { PageHeader } from "@/components/PageHeader"
+import { type PaceStatus, type ActivityPaceStatus } from "@/server/queries/DashboardQuery"
 
 // ---------------------------------------------------------------------------
 // Dashboard data type (mirrors DashboardDTO from server/queries/DashboardQuery)
@@ -17,16 +19,20 @@ type DashboardData = {
     projectedAmount: number
     goalAmount: number
     soldPercent: number
-    paceStatus: "ahead" | "on_pace" | "behind" | "goal_reached"
+    paceStatus: PaceStatus
   }
-  calls: { count: number; target: number; paceStatus: "on_pace" | "behind" }
-  asks: { count: number; target: number; paceStatus: "on_pace" | "behind" }
+  calls: { count: number; target: number; paceStatus: ActivityPaceStatus }
+  asks: { count: number; target: number; paceStatus: ActivityPaceStatus }
   daysRemainingInWeek: number
   weekNumber: number
 }
 
-type PaceStatus = "ahead" | "on_pace" | "behind" | "goal_reached"
-type ActivityPaceStatus = "on_pace" | "behind"
+const PACE_STATUS_LABELS: Record<PaceStatus | ActivityPaceStatus, string> = {
+  goal_reached: "Goal Reached",
+  ahead:        "Ahead",
+  on_pace:      "On Pace",
+  behind:       "Behind",
+}
 
 // ---------------------------------------------------------------------------
 // Utilities
@@ -72,21 +78,10 @@ function paceStatusToColor(status: PaceStatus): string {
 }
 
 function activityStatusToColor(status: ActivityPaceStatus): string {
-  return status === "on_pace"
-    ? "var(--color-status-success)"
-    : "var(--color-status-warning)"
-}
-
-function paceStatusLabel(status: PaceStatus): string {
   switch (status) {
-    case "ahead":
-      return "Ahead"
-    case "on_pace":
-      return "On Pace"
-    case "behind":
-      return "Behind"
-    case "goal_reached":
-      return "Goal Reached"
+    case "goal_reached": return "var(--color-status-achieved)"
+    case "on_pace":      return "var(--color-status-success)"
+    case "behind":       return "var(--color-status-warning)"
   }
 }
 
@@ -123,6 +118,7 @@ interface MoneyPaceCardProps {
   soldPercent: number
   paceStatus: PaceStatus
   isCurrentMonth: boolean
+  refreshing?: boolean
 }
 
 function MoneyPaceCard({
@@ -132,6 +128,7 @@ function MoneyPaceCard({
   soldPercent,
   paceStatus,
   isCurrentMonth,
+  refreshing = false,
 }: MoneyPaceCardProps) {
   const statusColor = paceStatusToColor(paceStatus)
   const gap = goalAmount - soldAmount
@@ -184,12 +181,15 @@ function MoneyPaceCard({
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <h3
-          className="font-bold"
-          style={{ fontSize: "var(--font-size-h3)", color: "var(--color-text-primary)" }}
-        >
-          Money Pace
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3
+            className="font-bold"
+            style={{ fontSize: "var(--font-size-h3)", color: "var(--color-text-primary)" }}
+          >
+            Money Pace
+          </h3>
+          {refreshing && <Spinner className="size-3.5" style={{ color: "var(--color-text-secondary)" }} />}
+        </div>
         <span
           className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
           style={{
@@ -198,78 +198,81 @@ function MoneyPaceCard({
             fontSize: "var(--font-size-small)",
           }}
         >
-          {isCurrentMonth
-            ? paceStatusLabel(paceStatus)
-            : paceStatus === "behind" ? "Missed" : "Hit"}
+          {PACE_STATUS_LABELS[paceStatus]}
         </span>
       </div>
 
-      {/* Primary number */}
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex flex-col gap-0.5">
-          <span
-            className="font-bold leading-none"
-            style={{ fontSize: "var(--font-size-hero)", color: heroColor }}
-          >
-            {soldPercent}%
-          </span>
-          <span
-            style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)" }}
-          >
-            Sold to Goal
-          </span>
-        </div>
-        {!goalReached && (
-          <div className="flex flex-col gap-0.5 items-end">
+      <div
+        className="flex flex-col gap-4"
+        style={{ opacity: refreshing ? 0.4 : 1, transition: "opacity 0.2s ease" }}
+      >
+        {/* Primary number */}
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-0.5">
             <span
               className="font-bold leading-none"
-              style={{ fontSize: "var(--font-size-h1)", color: "var(--color-text-primary)" }}
+              style={{ fontSize: "var(--font-size-hero)", color: heroColor }}
             >
-              {formatCurrency(gap)}
+              {soldPercent}%
             </span>
             <span
               style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)" }}
             >
-              to close
+              Sold to Goal
             </span>
           </div>
-        )}
-      </div>
-
-      {/* Level meter */}
-      <LevelMeter ratio={Math.min(soldPercent / 100, 1)} color={meterColor} />
-
-      {/* Supporting figures */}
-      <div className="flex flex-col gap-2">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: "SOLD", value: formatCurrency(soldAmount) },
-            { label: "GOAL", value: formatCurrency(goalAmount) },
-            { label: "PROJECTED", value: formatCurrency(projectedAmount) },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex flex-col gap-0.5">
+          {!goalReached && (
+            <div className="flex flex-col gap-0.5 items-end">
               <span
-                style={{
-                  fontSize: "var(--font-size-micro)",
-                  color: "var(--color-text-secondary)",
-                  letterSpacing: "0.06em",
-                  fontFamily: "var(--font-family-heading)",
-                }}
+                className="font-bold leading-none"
+                style={{ fontSize: "var(--font-size-h1)", color: "var(--color-text-primary)" }}
               >
-                {label}
+                {formatCurrency(gap)}
               </span>
               <span
-                className="font-bold"
-                style={{
-                  fontSize: "var(--font-size-body)",
-                  color: "var(--color-text-primary)",
-                  fontFamily: "var(--font-family-heading)",
-                }}
+                style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)" }}
               >
-                {value}
+                to close
               </span>
             </div>
-          ))}
+          )}
+        </div>
+
+        {/* Level meter */}
+        <LevelMeter ratio={Math.min(soldPercent / 100, 1)} color={meterColor} />
+
+        {/* Supporting figures */}
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "SOLD", value: formatCurrency(soldAmount) },
+              { label: "GOAL", value: formatCurrency(goalAmount) },
+              { label: "PROJECTED", value: formatCurrency(projectedAmount) },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex flex-col gap-0.5">
+                <span
+                  style={{
+                    fontSize: "var(--font-size-micro)",
+                    color: "var(--color-text-secondary)",
+                    letterSpacing: "0.06em",
+                    fontFamily: "var(--font-family-heading)",
+                  }}
+                >
+                  {label}
+                </span>
+                <span
+                  className="font-bold"
+                  style={{
+                    fontSize: "var(--font-size-body)",
+                    color: "var(--color-text-primary)",
+                    fontFamily: "var(--font-family-heading)",
+                  }}
+                >
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -287,6 +290,7 @@ interface ActivityCardProps {
   paceStatus: ActivityPaceStatus
   daysRemaining: number
   isCurrentWeek: boolean
+  refreshing?: boolean
 }
 
 function ActivityCard({
@@ -296,6 +300,7 @@ function ActivityCard({
   paceStatus,
   daysRemaining,
   isCurrentWeek,
+  refreshing = false,
 }: ActivityCardProps) {
   const label = type === "calls" ? "Calls" : "Asks"
   const statusColor = activityStatusToColor(paceStatus)
@@ -347,12 +352,15 @@ function ActivityCard({
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <h3
-          className="font-bold"
-          style={{ fontSize: "var(--font-size-h3)", color: "var(--color-text-primary)" }}
-        >
-          {label}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3
+            className="font-bold"
+            style={{ fontSize: "var(--font-size-h3)", color: "var(--color-text-primary)" }}
+          >
+            {label}
+          </h3>
+          {refreshing && <Spinner className="size-3.5" style={{ color: "var(--color-text-secondary)" }} />}
+        </div>
         {notStarted ? (
           <span
             className="shrink-0"
@@ -372,40 +380,43 @@ function ActivityCard({
               fontSize: "var(--font-size-small)",
             }}
           >
-            {isCurrentWeek
-              ? paceStatus === "on_pace" ? "On Pace" : "Behind"
-              : paceStatus === "on_pace" ? "Hit" : "Missed"}
+            {PACE_STATUS_LABELS[paceStatus]}
           </span>
         )}
       </div>
 
-      {/* Primary figures */}
-      <div className="flex items-baseline gap-1">
+      <div
+        className="flex flex-col gap-4"
+        style={{ opacity: refreshing ? 0.4 : 1, transition: "opacity 0.2s ease" }}
+      >
+        {/* Primary figures */}
+        <div className="flex items-baseline gap-1">
+          <span
+            className="font-bold leading-none"
+            style={{ fontSize: "var(--font-size-h1)", color: statusColor }}
+          >
+            {count}
+          </span>
+          <span style={{ fontSize: "var(--font-size-h2)", color: "var(--color-text-secondary)" }}>
+            / {target}
+          </span>
+        </div>
         <span
-          className="font-bold leading-none"
-          style={{ fontSize: "var(--font-size-h1)", color: statusColor }}
+          style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)", marginTop: "-0.75rem" }}
         >
-          {count}
+          this week
         </span>
-        <span style={{ fontSize: "var(--font-size-h2)", color: "var(--color-text-secondary)" }}>
-          / {target}
+
+        {/* Level meter */}
+        <LevelMeter ratio={ratio} color={statusColor} segments={target} />
+
+        {/* Footer */}
+        <span
+          style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)" }}
+        >
+          {footerText}
         </span>
       </div>
-      <span
-        style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)", marginTop: "-0.75rem" }}
-      >
-        this week
-      </span>
-
-      {/* Level meter */}
-      <LevelMeter ratio={ratio} color={statusColor} segments={target} />
-
-      {/* Footer */}
-      <span
-        style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)" }}
-      >
-        {footerText}
-      </span>
     </div>
   )
 }
@@ -419,6 +430,7 @@ interface ActivityPaceSectionProps {
   asks: DashboardData["asks"]
   daysRemainingInWeek: number
   isCurrentWeek: boolean
+  refreshing?: boolean
 }
 
 function ActivityPaceSection({
@@ -426,6 +438,7 @@ function ActivityPaceSection({
   asks,
   daysRemainingInWeek,
   isCurrentWeek,
+  refreshing = false,
 }: ActivityPaceSectionProps) {
   return (
     <div className="flex flex-col gap-4 md:flex-row">
@@ -436,6 +449,7 @@ function ActivityPaceSection({
         paceStatus={calls.paceStatus}
         daysRemaining={daysRemainingInWeek}
         isCurrentWeek={isCurrentWeek}
+        refreshing={refreshing}
       />
       <ActivityCard
         type="asks"
@@ -444,6 +458,7 @@ function ActivityPaceSection({
         paceStatus={asks.paceStatus}
         daysRemaining={daysRemainingInWeek}
         isCurrentWeek={isCurrentWeek}
+        refreshing={refreshing}
       />
     </div>
   )
@@ -465,7 +480,10 @@ export default function DashboardPage() {
   const weekYear = thursday.getFullYear()
   const weekNumber = getISOWeekNumber(selectedMonday)
   const apiUrl = `/api/dashboard?month=${monthParam}&weekYear=${weekYear}&weekNumber=${weekNumber}`
-  const { data, loading, error } = useFetch<DashboardData>(apiUrl)
+  const { data, initialLoading, refreshing, error, refetch } = useFetch<DashboardData>(apiUrl)
+  const { onCallLogged } = useQuickLog()
+
+  useEffect(() => onCallLogged(refetch), [onCallLogged, refetch])
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-3xl mx-auto w-full">
@@ -473,7 +491,7 @@ export default function DashboardPage() {
 
       <DateNavigator date={selectedMonday} onChange={setSelectedMonday} />
 
-      {loading && (
+      {initialLoading && (
         <div className="flex justify-center py-12">
           <Spinner className="size-6" style={{ color: "var(--color-text-secondary)" }} />
         </div>
@@ -494,12 +512,14 @@ export default function DashboardPage() {
             soldPercent={data.moneyPace.soldPercent}
             paceStatus={data.moneyPace.paceStatus}
             isCurrentMonth={isCurrentMonth}
+            refreshing={refreshing}
           />
           <ActivityPaceSection
             calls={data.calls}
             asks={data.asks}
             daysRemainingInWeek={data.daysRemainingInWeek}
             isCurrentWeek={isCurrentWeek}
+            refreshing={refreshing}
           />
         </>
       )}

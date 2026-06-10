@@ -1,13 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useFetch<T>(url: string) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [version, setVersion] = useState(0);
+
+  const initialLoading = loading && data === null;
+  const refreshing = loading && data !== null;
 
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true);
 
     async function load() {
       try {
@@ -24,7 +29,9 @@ export function useFetch<T>(url: string) {
     load();
 
     return () => controller.abort();
-  }, [url]);
+  }, [url, version]);
 
-  return { data, loading, error };
+  const refetch = useCallback(() => setVersion((v) => v + 1), []);
+
+  return { data, loading, initialLoading, refreshing, error, refetch };
 }

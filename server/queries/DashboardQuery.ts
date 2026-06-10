@@ -10,16 +10,22 @@ export type DashboardQueryParams = {
   weekNumber: number; // ISO week number
 };
 
+export const PACE_STATUSES = ["ahead", "on_pace", "behind", "goal_reached"] as const;
+export type PaceStatus = typeof PACE_STATUSES[number];
+
+export const ACTIVITY_PACE_STATUSES = ["on_pace", "behind", "goal_reached"] as const;
+export type ActivityPaceStatus = typeof ACTIVITY_PACE_STATUSES[number];
+
 export type DashboardDTO = {
   moneyPace: {
     soldAmount: number;
     projectedAmount: number;
     goalAmount: number;
     soldPercent: number;
-    paceStatus: "ahead" | "on_pace" | "behind" | "goal_reached";
+    paceStatus: PaceStatus;
   };
-  calls: { count: number; target: number; paceStatus: "on_pace" | "behind" };
-  asks: { count: number; target: number; paceStatus: "on_pace" | "behind" };
+  calls: { count: number; target: number; paceStatus: ActivityPaceStatus };
+  asks: { count: number; target: number; paceStatus: ActivityPaceStatus };
   daysRemainingInWeek: number;
   weekNumber: number;
 };
@@ -62,9 +68,10 @@ function isoWeekMonday(isoYear: number, isoWeek: number): Date {
 }
 
 const CONFIDENCE_WEIGHTS: Record<string, number> = {
-  SURE: 0.8,
-  EXPECT: 0.4,
-  HOPE: 0.1,
+  in: 0.95,
+  sure: 0.8,
+  expect: 0.4,
+  hope: 0.1,
 };
 
 // ---------------------------------------------------------------------------
@@ -138,10 +145,10 @@ export class BlobDashboardQuery implements IDashboardQuery {
 
       if (!withinSpan) continue;
 
-      if (outcome === "sold") {
+      if (outcome === "yes") {
         soldAmount += monthlyValue;
         projectedAmount += monthlyValue * 0.95;
-      } else if (confidence != null && confidence !== "") {
+      } else if (outcome !== "no" && confidence != null) {
         const weight = CONFIDENCE_WEIGHTS[confidence];
         if (weight != null) {
           projectedAmount += weight * monthlyValue;
@@ -181,7 +188,7 @@ export class BlobDashboardQuery implements IDashboardQuery {
         paceStatus = "goal_reached";
       } else if (soldAmount >= expectedAmount) {
         paceStatus = "ahead";
-      } else if (soldAmount + projectedAmount >= expectedAmount) {
+      } else if (projectedAmount >= expectedAmount) {
         paceStatus = "on_pace";
       } else {
         paceStatus = "behind";
@@ -231,10 +238,14 @@ export class BlobDashboardQuery implements IDashboardQuery {
     const callExpected = weeklyCallTarget * (workingDaysElapsedInWeek / 5);
     const askExpected = weeklyAskTarget * (workingDaysElapsedInWeek / 5);
 
-    const callPaceStatus: "on_pace" | "behind" =
-      callCount >= callExpected ? "on_pace" : "behind";
-    const askPaceStatus: "on_pace" | "behind" =
-      askCount >= askExpected ? "on_pace" : "behind";
+    const callPaceStatus: ActivityPaceStatus =
+      callCount >= weeklyCallTarget ? "goal_reached"
+      : callCount >= callExpected ? "on_pace"
+      : "behind";
+    const askPaceStatus: ActivityPaceStatus =
+      askCount >= weeklyAskTarget ? "goal_reached"
+      : askCount >= askExpected ? "on_pace"
+      : "behind";
 
     return {
       moneyPace: {
