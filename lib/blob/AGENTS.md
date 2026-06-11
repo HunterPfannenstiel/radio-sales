@@ -12,3 +12,6 @@ This directory stores all of the functionality necessary to persist data for the
 * Prioritize an easy and obvious design over one that is highly thought out and performant
 * This schema should be stored in `schema.ts` and should be the only instance of the schema. All other files should reference this file.
 * Never duplicate enum values — define them once as a `const` array with a derived type (e.g. `export const CALL_OUTCOMES = ["yes", "no", "pending"] as const; export type CallOutcome = typeof CALL_OUTCOMES[number]`) and import them wherever they are needed.
+
+## Usage
+* Always import the `blob` singleton from `lib/blob` — never instantiate a store class directly — so the correct persistence layer is selected via environment

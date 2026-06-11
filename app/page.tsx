@@ -32,6 +32,7 @@ const PACE_STATUS_LABELS: Record<PaceStatus | ActivityPaceStatus, string> = {
   ahead:        "Ahead",
   on_pace:      "On Pace",
   behind:       "Behind",
+  missed:       "Missed",
 }
 
 // ---------------------------------------------------------------------------
@@ -64,24 +65,16 @@ function getMondayOfCurrentWeek(): Date {
   return monday
 }
 
-function paceStatusToColor(status: PaceStatus): string {
+function paceStatusToColor(status: PaceStatus | ActivityPaceStatus): string {
   switch (status) {
     case "ahead":
-      return "var(--color-status-success)"
     case "on_pace":
-      return "var(--color-status-info)"
+      return "var(--color-status-success)"
     case "behind":
+    case "missed":
       return "var(--color-status-warning)"
     case "goal_reached":
       return "var(--color-status-achieved)"
-  }
-}
-
-function activityStatusToColor(status: ActivityPaceStatus): string {
-  switch (status) {
-    case "goal_reached": return "var(--color-status-achieved)"
-    case "on_pace":      return "var(--color-status-success)"
-    case "behind":       return "var(--color-status-warning)"
   }
 }
 
@@ -303,7 +296,7 @@ function ActivityCard({
   refreshing = false,
 }: ActivityCardProps) {
   const label = type === "calls" ? "Calls" : "Asks"
-  const statusColor = activityStatusToColor(paceStatus)
+  const statusColor = paceStatusToColor(paceStatus)
   const ratio = target > 0 ? Math.min(count / target, 1) : 0
 
   // Empty state — no targets set

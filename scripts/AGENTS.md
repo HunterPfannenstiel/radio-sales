@@ -17,9 +17,4 @@
 
 ### Standards
 * Define data in constants at the top of the file, don't inline anything
-* Wipe existing data at the start of the script
-    * Accessing the persistence classes is acceptable in this case
-
-### Phase 0 Rules
-* All data mutations must be performed using the mutators defined in /server/mutations
-    * If certain functionality is not supported by the mutations you are allowed to create a seed mutation where the name of the mutation is prefixed with 'Seed' and the mutation is placed under a 'seed' property for the aggregated mutation object. Inform the user that this specific mutation was created before continuing.
+* Wipe the existing store then write the entire store

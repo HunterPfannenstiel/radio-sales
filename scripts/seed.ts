@@ -1,7 +1,6 @@
-import { LocalBlobStore } from "../lib/blob/local.ts";
+import { blob } from "../lib/blob/index.ts";
 import { paths } from "../lib/blob/paths.ts";
-import { BlobLogCallMutation } from "../server/mutations/LogCallMutation.ts";
-import { BlobSetRepGoalMutation } from "../server/mutations/SetRepGoalMutation.ts";
+import { emptyStore, type Store } from "../lib/blob/schema.ts";
 
 const REP_ID = process.env.CURRENT_REP_ID;
 const REP_NAME = process.env.CURRENT_REP_NAME;
@@ -293,28 +292,49 @@ const MAY: CallDef[] = [
 // Run
 // ---------------------------------------------------------------------------
 
-const store = new LocalBlobStore();
-const logCall = new BlobLogCallMutation();
-const setRepGoal = new BlobSetRepGoalMutation();
-
 async function run() {
   console.log("Wiping existing store...");
-  await store.wipe();
-
-  console.log("Setting rep goal...");
-  await setRepGoal.execute({
-    repId: REP_ID as string,
-    ...GOALS,
-    script: { repName: REP_NAME as string },
-  });
+  await blob.wipe();
 
   const allCalls = [...JAN, ...FEB, ...MAR, ...APR, ...MAY];
-  console.log(`Seeding ${allCalls.length} call logs across Jan–May 2026...`);
+  console.log(`Building store from ${allCalls.length} call logs...`);
+
+  const built: Store = emptyStore();
+
+  built.reps.push({ id: REP_ID as string, name: REP_NAME as string });
+  built.repGoals.push({ repId: REP_ID as string, ...GOALS });
 
   for (const call of allCalls) {
-    await logCall.execute({ repId: REP_ID as string, ...call });
+    const nameLower = call.businessName.toLowerCase();
+    let business = built.businesses.find((b) => b.name.toLowerCase() === nameLower);
+    if (!business) {
+      business = {
+        id: crypto.randomUUID(),
+        repId: REP_ID as string,
+        name: call.businessName,
+        createdAt: call.loggedAt,
+      };
+      built.businesses.push(business);
+    }
+
+    const callLog: Store["callLogs"][number] = {
+      id: crypto.randomUUID(),
+      repId: REP_ID as string,
+      businessId: business.id,
+      stage: call.stage,
+      whatNext: call.whatNext,
+      loggedAt: call.loggedAt,
+    };
+    if (call.outcome !== undefined) callLog.outcome = call.outcome;
+    if (call.budget !== undefined) callLog.budget = call.budget;
+    if (call.termValue !== undefined) callLog.termValue = call.termValue;
+    if (call.termUnit !== undefined) callLog.termUnit = call.termUnit;
+    if (call.confidence !== undefined) callLog.confidence = call.confidence;
+
+    built.callLogs.push(callLog);
   }
 
+  await blob.write(paths.store, built);
   console.log("Done.");
 }
 

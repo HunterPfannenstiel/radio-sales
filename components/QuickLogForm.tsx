@@ -504,6 +504,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
+                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "center" })}
                 autoComplete="off"
                 min={0}
               />
@@ -520,6 +521,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={termValue}
                 onChange={(e) => setTermValue(e.target.value)}
+                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "center" })}
                 autoComplete="off"
                 className="flex-1"
                 min={0}

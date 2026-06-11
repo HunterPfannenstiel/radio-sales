@@ -259,6 +259,10 @@
   }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Goal-reached card border pulse — fires once, settles back to red accent */
 @keyframes goal-reached-pulse {
   0%   { box-shadow: 0 0 0 1px var(--color-border-default), 0 0 0 3px transparent; }

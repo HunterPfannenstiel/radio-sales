@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { useRequest } from "@/hooks/useRequest"
 import { useToast } from "@/hooks/useToast"
 import { type CurrentStage, STAGE_LABELS, STAGE_ORDERED, STAGE_POSITION } from "@/lib/types"
@@ -67,7 +67,7 @@ interface NextStepProps {
 function NextStep({ text, onSave, isSaving }: NextStepProps) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(text)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!editing) setValue(text)
@@ -80,18 +80,11 @@ function NextStep({ text, onSave, isSaving }: NextStepProps) {
 
   useEffect(() => {
     if (!editing) return
-    const el = textareaRef.current
+    const el = inputRef.current
     if (!el) return
     el.focus()
     el.setSelectionRange(el.value.length, el.value.length)
   }, [editing])
-
-  useLayoutEffect(() => {
-    const el = textareaRef.current
-    if (!el) return
-    el.style.height = "auto"
-    el.style.height = `${el.scrollHeight}px`
-  }, [value, editing])
 
   const cancel = useCallback(() => {
     setEditing(false)
@@ -106,8 +99,8 @@ function NextStep({ text, onSave, isSaving }: NextStepProps) {
   }, [value, isSaving, onSave])
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
         e.preventDefault()
         save()
       }
@@ -147,18 +140,17 @@ function NextStep({ text, onSave, isSaving }: NextStepProps) {
       </span>
 
       {editing ? (
-        <textarea
-          ref={textareaRef}
+        <input
+          type="text"
+          ref={inputRef}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={save}
-          rows={1}
           disabled={isSaving}
           style={{
             ...fieldStyle,
-            resize: "none",
-            overflow: "hidden",
+            fontSize: "max(16px, var(--font-size-body))",
           }}
         />
       ) : (

@@ -340,7 +340,7 @@ interface BusinessViewContentProps {
 }
 
 function BusinessViewContent({ business, onStageChange, onNextStepChange }: BusinessViewContentProps) {
-  const { data } = useFetch<HistoryEntryResponse[]>(`/api/businesses/${business.id}/history`)
+  const { data, initialLoading } = useFetch<HistoryEntryResponse[]>(`/api/businesses/${business.id}/history`)
   const entries: InteractionEntry[] = (data ?? []).map((e) => ({ ...e, date: new Date(e.date) }))
 
   return (
@@ -351,7 +351,7 @@ function BusinessViewContent({ business, onStageChange, onNextStepChange }: Busi
         onNextStepChange={onNextStepChange}
       />
       <Separator style={{ background: "var(--color-border-default)" }} />
-      <InteractionHistory entries={entries} />
+      <InteractionHistory entries={entries} isLoading={initialLoading} />
     </>
   )
 }

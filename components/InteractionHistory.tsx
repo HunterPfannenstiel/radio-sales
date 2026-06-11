@@ -303,11 +303,13 @@ function EmptyState() {
 
 export interface InteractionHistoryProps {
   entries: InteractionEntry[]
+  isLoading?: boolean
   className?: string
 }
 
 export function InteractionHistory({
   entries,
+  isLoading,
   className,
 }: InteractionHistoryProps) {
   return (
@@ -326,13 +328,34 @@ export function InteractionHistory({
           fontWeight: "var(--font-weight-bold)",
           lineHeight: "var(--line-height-heading)",
           color: "var(--color-text-primary)",
-          marginBottom: entries.length > 0 ? "var(--spacing-sm)" : 0,
+          marginBottom: (isLoading || entries.length > 0) ? "var(--spacing-sm)" : 0,
         }}
       >
         Interaction history
       </h3>
 
-      {entries.length === 0 ? (
+      {isLoading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "var(--spacing-md) 0",
+          }}
+        >
+          <span
+            aria-label="Loading"
+            style={{
+              display: "inline-block",
+              width: "18px",
+              height: "18px",
+              borderRadius: "50%",
+              border: "2px solid var(--color-border-default)",
+              borderTopColor: "var(--color-accent-primary)",
+              animation: "spin 0.7s linear infinite",
+            }}
+          />
+        </div>
+      ) : entries.length === 0 ? (
         <EmptyState />
       ) : (
         /* Timeline list — continuous 1px vertical line in the gutter */

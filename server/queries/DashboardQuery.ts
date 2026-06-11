@@ -11,10 +11,10 @@ export type DashboardQueryParams = {
   timezone: string;
 };
 
-export const PACE_STATUSES = ["ahead", "on_pace", "behind", "goal_reached"] as const;
+export const PACE_STATUSES = ["ahead", "on_pace", "behind", "missed", "goal_reached"] as const;
 export type PaceStatus = typeof PACE_STATUSES[number];
 
-export const ACTIVITY_PACE_STATUSES = ["on_pace", "behind", "goal_reached"] as const;
+export const ACTIVITY_PACE_STATUSES = ["on_pace", "behind", "missed", "goal_reached"] as const;
 export type ActivityPaceStatus = typeof ACTIVITY_PACE_STATUSES[number];
 
 export type DashboardDTO = {
@@ -173,6 +173,8 @@ export class BlobDashboardQuery implements IDashboardQuery {
       new Date(Date.UTC(year, month + 1, 0))
     );
 
+    const isPastMonth = todayUTC > monthEnd;
+
     let paceStatus: DashboardDTO["moneyPace"]["paceStatus"];
     let soldPercent: number;
 
@@ -186,6 +188,8 @@ export class BlobDashboardQuery implements IDashboardQuery {
 
       if (soldAmount >= goalAmount) {
         paceStatus = "goal_reached";
+      } else if (isPastMonth) {
+        paceStatus = "missed";
       } else if (soldAmount >= expectedAmount) {
         paceStatus = "ahead";
       } else if (projectedAmount >= expectedAmount) {
@@ -238,12 +242,16 @@ export class BlobDashboardQuery implements IDashboardQuery {
     const callExpected = weeklyCallTarget * (workingDaysElapsedInWeek / 5);
     const askExpected = weeklyAskTarget * (workingDaysElapsedInWeek / 5);
 
+    const isPastWeek = todayUTC > weekFriday;
+
     const callPaceStatus: ActivityPaceStatus =
       callCount >= weeklyCallTarget ? "goal_reached"
+      : isPastWeek ? "missed"
       : callCount >= callExpected ? "on_pace"
       : "behind";
     const askPaceStatus: ActivityPaceStatus =
       askCount >= weeklyAskTarget ? "goal_reached"
+      : isPastWeek ? "missed"
       : askCount >= askExpected ? "on_pace"
       : "behind";
 
