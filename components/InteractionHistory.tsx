@@ -59,11 +59,6 @@ function formatEntryDate(date: Date): string {
   })
 }
 
-function isStale(date: Date): boolean {
-  const diffMs = Date.now() - date.getTime()
-  return diffMs > 30 * 24 * 60 * 60 * 1000
-}
-
 function formatAmount(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -138,7 +133,6 @@ function InteractionHistoryEntry({
   entry,
   isMostRecent,
 }: InteractionHistoryEntryProps) {
-  const stale = isStale(entry.date)
   const outcomeLabel = OUTCOME_LABELS[entry.outcome]
 
   return (
@@ -186,9 +180,7 @@ function InteractionHistoryEntry({
             style={{
               fontSize: "var(--font-size-small)",
               fontWeight: "var(--font-weight-medium)",
-              color: stale
-                ? "var(--color-status-warning)"
-                : "var(--color-text-primary)",
+              color: "var(--color-text-primary)",
               lineHeight: "var(--line-height-body)",
             }}
           >
