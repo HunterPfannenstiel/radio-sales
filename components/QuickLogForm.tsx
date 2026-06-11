@@ -103,7 +103,6 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
     prefill?.businessId
   )
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [inputFocused, setInputFocused] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const isBusinessLocked = Boolean(prefill?.businessName)
@@ -249,8 +248,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                   value={business}
                   disabled={isBusinessLocked}
                   onChange={(e) => handleBusinessChange(e.target.value)}
-                  onFocus={() => { handleBusinessFocus(); setInputFocused(true) }}
-                  onBlur={() => setInputFocused(false)}
+                  onFocus={handleBusinessFocus}
                   autoComplete="off"
                   className={cn(isBusinessLocked && "bg-muted text-muted-foreground")}
                 />
@@ -506,8 +504,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
-                onFocus={(e) => { e.target.scrollIntoView({ behavior: "smooth", block: "center" }); setInputFocused(true) }}
-                onBlur={() => setInputFocused(false)}
+                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                 autoComplete="off"
                 min={0}
               />
@@ -524,8 +521,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={termValue}
                 onChange={(e) => setTermValue(e.target.value)}
-                onFocus={(e) => { e.target.scrollIntoView({ behavior: "smooth", block: "center" }); setInputFocused(true) }}
-                onBlur={() => setInputFocused(false)}
+                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                 autoComplete="off"
                 className="flex-1"
                 min={0}
@@ -553,10 +549,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
           </Field>
         </FieldGroup>
 
-        <div
-          className={cn("mt-6 pb-4", !inputFocused && "sticky bottom-0 bg-popover pt-3 border-t border-border")}
-          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
-        >
+        <div className="mt-6 pb-4" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
           {submitError && (
             <p
               className="mb-2 text-xs text-center"
