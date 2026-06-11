@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTodayDate } from '@/hooks/useTodayDate'
 
 export interface WeekRow {
   weekNumber: number
@@ -35,7 +36,8 @@ function formatDateSpan(monday: Date): string {
   return `${monStr} – ${sunStr}`
 }
 
-function getRelativeLabel(monday: Date, todayMonday: Date): string | undefined {
+function getRelativeLabel(monday: Date, todayMonday: Date | null): string | undefined {
+  if (!todayMonday) return undefined
   const diffMs = todayMonday.getTime() - monday.getTime()
   const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000))
   if (diffWeeks === 0) return 'This week'
@@ -45,8 +47,8 @@ function getRelativeLabel(monday: Date, todayMonday: Date): string | undefined {
 }
 
 export function useWeekCalendar(selectedDate: Date) {
-  const today = new Date()
-  const todayMonday = getMondayOf(today)
+  const today = useTodayDate()
+  const todayMonday = today ? getMondayOf(today) : null
 
   const [displayDate, setDisplayDate] = useState(() => new Date(selectedDate))
 
@@ -68,12 +70,12 @@ export function useWeekCalendar(selectedDate: Date) {
   }
 
   const selectedWeekNumber = getISOWeekNumber(selectedDate)
-  const todayWeekNumber = getISOWeekNumber(today)
+  const todayWeekNumber = today ? getISOWeekNumber(today) : null
   const currentMonthLabel = displayDate.toLocaleString('default', { month: 'long', year: 'numeric' })
 
-  const thisWeekMonday = new Date(todayMonday)
-  const lastWeekMonday = new Date(todayMonday)
-  lastWeekMonday.setDate(todayMonday.getDate() - 7)
+  const thisWeekMonday = todayMonday ? new Date(todayMonday) : null
+  const lastWeekMonday = todayMonday ? new Date(todayMonday) : null
+  if (lastWeekMonday && todayMonday) lastWeekMonday.setDate(todayMonday.getDate() - 7)
 
   const goToPrevMonth = () =>
     setDisplayDate((d) => { const n = new Date(d); n.setMonth(d.getMonth() - 1); return n })

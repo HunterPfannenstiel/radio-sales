@@ -2,6 +2,7 @@ import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { Queries } from "@/server/queries";
 import { Roles } from "@/server/roles/Roles";
+import { getRequestTimezone } from "@/lib/timezone";
 
 const querySchema = z.object({
   month: z
@@ -52,12 +53,14 @@ export async function GET(request: NextRequest) {
   const year = parseInt(yearStr, 10);
   const month = parseInt(monthStr, 10) - 1; // convert to 0-based
 
+  const timezone = getRequestTimezone(request);
   const result = await Queries.dashboard.execute({
     repId,
     year,
     month,
     weekYear,
     weekNumber,
+    timezone,
   });
 
   return Response.json(result);

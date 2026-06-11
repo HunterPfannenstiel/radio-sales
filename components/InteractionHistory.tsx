@@ -1,9 +1,7 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
-import { Phone } from "lucide-react"
+import React from "react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -42,13 +40,6 @@ const STAGE_LABELS: Record<string, string> = {
   service: "Service",
 }
 
-const STAGE_DOT_COLORS: Record<string, string> = {
-  approach: "var(--color-status-info)",
-  uncover: "var(--color-accent-secondary)",
-  present: "var(--color-status-achieved)",
-  close: "var(--color-status-success)",
-  service: "var(--color-status-success)",
-}
 
 function formatEntryDate(date: Date): string {
   const now = new Date()
@@ -133,41 +124,6 @@ function OutcomeIndicator({ outcome }: OutcomeIndicatorProps) {
   return null
 }
 
-// ---------------------------------------------------------------------------
-// StagePill — display-only dot + label (mirrors BusinessCard pattern)
-// ---------------------------------------------------------------------------
-
-interface StagePillProps {
-  stage: string
-}
-
-function StagePill({ stage }: StagePillProps) {
-  const label = STAGE_LABELS[stage] ?? stage
-  const dotColor = STAGE_DOT_COLORS[stage] ?? "var(--color-text-secondary)"
-
-  return (
-    <span
-      className="inline-flex items-center gap-1"
-      style={{
-        fontSize: "var(--font-size-small)",
-        color: "var(--color-text-secondary)",
-      }}
-    >
-      <span
-        aria-hidden
-        style={{
-          display: "inline-block",
-          width: "var(--icon-size-xs)",
-          height: "var(--icon-size-xs)",
-          borderRadius: "50%",
-          background: dotColor,
-          flexShrink: 0,
-        }}
-      />
-      {label}
-    </span>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // InteractionHistoryEntry
@@ -219,18 +175,11 @@ function InteractionHistoryEntry({
           paddingLeft: "var(--spacing-md)",
           paddingTop: "0",
           paddingBottom: "var(--spacing-sm)",
-          ...(isMostRecent
-            ? {
-                borderLeft:
-                  "2px solid oklch(from var(--color-accent-primary) l c h / 40%)",
-                paddingLeft: "calc(var(--spacing-md) - 2px)",
-              }
-            : {}),
         }}
       >
         {/* Date + stage row */}
         <div
-          className="flex items-center justify-between gap-2"
+          className="flex items-center gap-0"
           style={{ marginBottom: "2px" }}
         >
           <span
@@ -245,7 +194,15 @@ function InteractionHistoryEntry({
           >
             {formatEntryDate(entry.date)}
           </span>
-          <StagePill stage={entry.stage} />
+          <span
+            style={{
+              fontSize: "var(--font-size-small)",
+              color: "var(--color-text-secondary)",
+              lineHeight: "var(--line-height-body)",
+            }}
+          >
+            {" · "}{STAGE_LABELS[entry.stage] ?? entry.stage}
+          </span>
         </div>
 
         {/* Outcome line */}
@@ -326,69 +283,17 @@ function InteractionHistoryEntry({
 // EmptyState — follows design standards empty state template
 // ---------------------------------------------------------------------------
 
-interface EmptyStateProps {
-  onLogCall: () => void
-}
-
-function EmptyState({ onLogCall }: EmptyStateProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
-
-  // Fade-in on mount: opacity 0 → 0.5 over --duration-base
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setVisible(true))
-    return () => cancelAnimationFrame(frame)
-  }, [])
-
+function EmptyState() {
   return (
-    <div
-      ref={ref}
-      className="flex flex-col items-center justify-center text-center"
+    <p
       style={{
-        padding: "var(--spacing-xl) var(--spacing-md)",
-        gap: "var(--spacing-sm)",
+        fontSize: "var(--font-size-sm)",
+        color: "var(--color-text-secondary)",
+        padding: "var(--spacing-sm) 0",
       }}
     >
-      <Phone
-        aria-hidden
-        style={{
-          width: "var(--icon-size-xl)",
-          height: "var(--icon-size-xl)",
-          color: "var(--color-accent-primary)",
-          opacity: visible ? 0.5 : 0,
-          transition: `opacity var(--duration-base) ease-out`,
-        }}
-      />
-      <h3
-        style={{
-          fontSize: "var(--font-size-h3)",
-          fontWeight: "var(--font-weight-bold)",
-          lineHeight: "var(--line-height-heading)",
-          color: "var(--color-text-primary)",
-          marginTop: "var(--spacing-xs)",
-        }}
-      >
-        No interactions yet
-      </h3>
-      <p
-        style={{
-          fontSize: "var(--font-size-body)",
-          color: "var(--color-text-secondary)",
-          lineHeight: "var(--line-height-body)",
-          maxWidth: "28ch",
-        }}
-      >
-        Log a call to start tracking this account&apos;s history.
-      </p>
-      <Button
-        onClick={onLogCall}
-        style={{
-          marginTop: "var(--spacing-xs)",
-        }}
-      >
-        Log first call
-      </Button>
-    </div>
+      No interactions yet
+    </p>
   )
 }
 
@@ -398,13 +303,11 @@ function EmptyState({ onLogCall }: EmptyStateProps) {
 
 export interface InteractionHistoryProps {
   entries: InteractionEntry[]
-  onLogCall: () => void
   className?: string
 }
 
 export function InteractionHistory({
   entries,
-  onLogCall,
   className,
 }: InteractionHistoryProps) {
   return (
@@ -430,7 +333,7 @@ export function InteractionHistory({
       </h3>
 
       {entries.length === 0 ? (
-        <EmptyState onLogCall={onLogCall} />
+        <EmptyState />
       ) : (
         /* Timeline list — continuous 1px vertical line in the gutter */
         <div

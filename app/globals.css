@@ -100,10 +100,10 @@
   --color-text-inverse:    oklch(1 0 0);
 
   /* Status */
-  --color-status-success:  oklch(0.627 0.194 142.5);
+  --color-status-success:  oklch(0.64 0.23 142.5);
   --color-status-info:     oklch(0.546 0.243 264.4);
   --color-status-warning:  oklch(0.505 0.209 27.3);
-  --color-status-achieved: oklch(0.580 0.120 182.1);
+  --color-status-achieved: oklch(0.56 0.27 142.5);
 
   /* Accent */
   --color-accent-primary:    oklch(0.545 0.225 25);
@@ -208,10 +208,10 @@
   --color-text-inverse:    oklch(0.145 0 0);
 
   /* Status */
-  --color-status-success:  oklch(0.696 0.178 142.5);
+  --color-status-success:  oklch(0.72 0.23 142.5);
   --color-status-info:     oklch(0.623 0.214 264.4);
   --color-status-warning:  oklch(0.627 0.209 27.3);
-  --color-status-achieved: oklch(0.651 0.118 182.1);
+  --color-status-achieved: oklch(0.65 0.27 142.5);
 
   /* Accent */
   --color-accent-primary:    oklch(0.65 0.195 25);

@@ -8,6 +8,7 @@ export type DashboardQueryParams = {
   month: number; // 0-based (0 = January)
   weekYear: number;
   weekNumber: number; // ISO week number
+  timezone: string;
 };
 
 export const PACE_STATUSES = ["ahead", "on_pace", "behind", "goal_reached"] as const;
@@ -80,7 +81,7 @@ const CONFIDENCE_WEIGHTS: Record<string, number> = {
 
 export class BlobDashboardQuery implements IDashboardQuery {
   async execute(params: DashboardQueryParams): Promise<DashboardDTO> {
-    const { repId, year, month, weekYear, weekNumber } = params;
+    const { repId, year, month, weekYear, weekNumber, timezone } = params;
 
     const store = (await blob.read<Store>(paths.store)) ?? emptyStore();
 
@@ -156,11 +157,10 @@ export class BlobDashboardQuery implements IDashboardQuery {
       }
     }
 
-    // Working days elapsed
-    const today = new Date();
-    const todayUTC = new Date(
-      Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
-    );
+    // Working days elapsed — derived from the user's local date to avoid UTC midnight skew
+    const localTodayStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
+    const [ty, tm, td] = localTodayStr.split('-').map(Number)
+    const todayUTC = new Date(Date.UTC(ty, tm - 1, td));
 
     const monthEnd = new Date(Date.UTC(year, month + 1, 0)); // last day of month
 

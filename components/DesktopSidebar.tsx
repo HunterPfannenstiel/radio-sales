@@ -90,12 +90,12 @@ function SidebarQuickLog({ onOpen }: { onOpen: () => void }) {
       <button
         type="button"
         onClick={onOpen}
-        className="flex items-center gap-2 w-full px-4 transition-opacity hover:opacity-90 active:opacity-80"
+        className="flex items-center gap-2 w-full px-4 transition-opacity hover:opacity-80 active:opacity-60"
         style={{
           height: "40px",
           borderRadius: "9999px",
-          background: "var(--color-accent-primary)",
-          color: "var(--color-text-inverse)",
+          background: "color-mix(in oklch, var(--color-accent-primary) 15%, transparent)",
+          color: "var(--color-accent-primary)",
           fontFamily: "var(--font-family-base)",
           fontSize: "var(--font-size-body)",
           fontWeight: "var(--font-weight-medium)",
@@ -104,12 +104,12 @@ function SidebarQuickLog({ onOpen }: { onOpen: () => void }) {
       >
         <PhoneCall
           style={{
-            width: "var(--icon-size-sm)",
-            height: "var(--icon-size-sm)",
+            width: "var(--icon-size-md)",
+            height: "var(--icon-size-md)",
             flexShrink: 0,
           }}
         />
-        Log Call
+        Log call
       </button>
       {/* Hairline separator */}
       <div

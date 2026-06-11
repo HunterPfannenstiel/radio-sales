@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
+import { STAGE_ORDERED, STAGE_LABELS, NEXT_STEPS } from "@/lib/types"
 import { useRequest } from "@/hooks/useRequest"
 import { useFetch } from "@/hooks/useFetch"
 import { useQuickLog } from "@/components/QuickLogContext"
@@ -36,21 +37,6 @@ export type QuickLogFormProps = {
   onClose: () => void
 }
 
-const STAGES = [
-  { value: "approach", label: "Approach" },
-  { value: "uncover", label: "Uncover" },
-  { value: "present", label: "Present" },
-  { value: "close", label: "Close" },
-  { value: "service_upsell", label: "Service / Upsell" },
-]
-
-const NEXT_STEPS = [
-  { value: "followup_call", label: "Follow-up call" },
-  { value: "send_proposal", label: "Send proposal" },
-  { value: "schedule_demo", label: "Schedule demo" },
-  { value: "send_contract", label: "Send contract" },
-  { value: "check_in", label: "Check in" },
-]
 
 const CONFIDENCE_OPTIONS = [
   { value: "in", label: "IN" },
@@ -320,13 +306,13 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
               Stage
             </FieldLabel>
             <div role="group" className="flex flex-wrap gap-1">
-              {STAGES.map((s) => {
-                const isSelected = stage === s.value
+              {STAGE_ORDERED.map((s) => {
+                const isSelected = stage === s
                 return (
                   <button
-                    key={s.value}
+                    key={s}
                     type="button"
-                    onClick={() => handleStageChange(isSelected ? "" : s.value)}
+                    onClick={() => handleStageChange(isSelected ? "" : s)}
                     className="rounded-md px-3 py-2 text-sm font-medium transition-all"
                     style={{
                       background: isSelected ? "var(--color-accent-primary)" : "transparent",
@@ -334,7 +320,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                       border: isSelected ? undefined : "1px solid var(--color-border-default)",
                     }}
                   >
-                    {s.label}
+                    {STAGE_LABELS[s]}
                   </button>
                 )
               })}

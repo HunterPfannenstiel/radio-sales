@@ -1,6 +1,8 @@
+import { type NextRequest } from "next/server";
 import { Queries } from "@/server/queries";
+import { getRequestTimezone } from "@/lib/timezone";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const repId = process.env.CURRENT_REP_ID;
   if (!repId) {
     return new Response(
@@ -9,6 +11,7 @@ export async function GET() {
     );
   }
 
-  const result = await Queries.callActivity.execute(repId);
+  const timezone = getRequestTimezone(request);
+  const result = await Queries.callActivity.execute({ repId, timezone });
   return Response.json(result);
 }

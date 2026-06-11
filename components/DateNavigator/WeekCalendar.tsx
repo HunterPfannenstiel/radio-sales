@@ -38,7 +38,8 @@ export function WeekCalendar({ selectedDate, onSelectWeek }: WeekCalendarProps) 
           variant="outline"
           size="sm"
           className="flex-1 text-xs"
-          onClick={() => { goToDate(thisWeekMonday); onSelectWeek(thisWeekMonday) }}
+          disabled={!thisWeekMonday}
+          onClick={() => { if (thisWeekMonday) { goToDate(thisWeekMonday); onSelectWeek(thisWeekMonday) } }}
         >
           This week
         </Button>
@@ -46,7 +47,8 @@ export function WeekCalendar({ selectedDate, onSelectWeek }: WeekCalendarProps) 
           variant="outline"
           size="sm"
           className="flex-1 text-xs"
-          onClick={() => { goToDate(lastWeekMonday); onSelectWeek(lastWeekMonday) }}
+          disabled={!lastWeekMonday}
+          onClick={() => { if (lastWeekMonday) { goToDate(lastWeekMonday); onSelectWeek(lastWeekMonday) } }}
         >
           Last week
         </Button>

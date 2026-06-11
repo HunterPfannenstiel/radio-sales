@@ -1,11 +1,12 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { ClipboardList, PhoneCall } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BusinessView } from "@/components/BusinessView"
-import { BusinessHeader, type BusinessViewData, type PipelineStage } from "@/app/whats-next/BusinessHeader"
+import { BusinessHeader, type BusinessViewData } from "@/app/whats-next/BusinessHeader"
+import { type CurrentStage } from "@/lib/types"
 import { InteractionHistory, type InteractionEntry } from "@/components/InteractionHistory"
 import { Separator } from "@/components/ui/separator"
 import { useQuickLog } from "@/components/QuickLogContext"
@@ -33,15 +34,17 @@ const STAGE_LABELS: Record<string, string> = {
   uncover: "Uncover",
   present: "Present",
   close: "Close",
+  service: "Service",
   service_upsell: "Service / Upsell",
 }
 
 const STAGE_DOT_COLORS: Record<string, string> = {
-  approach: "var(--color-status-info)",
-  uncover: "var(--color-accent-secondary)",
-  present: "var(--color-status-achieved)",
+  approach: "var(--color-text-secondary)",
+  uncover: "var(--color-status-info)",
+  present: "var(--color-accent-primary)",
   close: "var(--color-status-success)",
-  service_upsell: "var(--color-status-success)",
+  service: "var(--color-status-achieved)",
+  service_upsell: "var(--color-status-achieved)",
 }
 
 /** Format date per spec: "Today" / "Yesterday" / "Jun 3" / "Jun 3, 2024" */
@@ -77,12 +80,13 @@ function sortAccounts(accounts: WhatsNextAccount[]): WhatsNextAccount[] {
 }
 
 function toBusinessViewData(account: WhatsNextAccount): BusinessViewData {
-  const stageMap: Record<string, PipelineStage> = {
+  const stageMap: Record<string, CurrentStage> = {
     approach: "approach",
     uncover: "uncover",
     present: "present",
     close: "close",
     service_upsell: "service",
+    service: "service",
   }
   return {
     id: account.id,
@@ -101,10 +105,9 @@ interface WhatsNextCardProps {
   account: WhatsNextAccount
   today: Date
   onCardClick: (account: WhatsNextAccount) => void
-  onLogCall: (account: WhatsNextAccount) => void
 }
 
-function WhatsNextCard({ account, today, onCardClick, onLogCall }: WhatsNextCardProps) {
+function WhatsNextCard({ account, today, onCardClick }: WhatsNextCardProps) {
   const stageLabel = STAGE_LABELS[account.stage] ?? account.stage
   const dotColor = STAGE_DOT_COLORS[account.stage] ?? "var(--color-text-secondary)"
   const lastContact = formatLastContact(account.lastContactedAt, today)
@@ -112,12 +115,6 @@ function WhatsNextCard({ account, today, onCardClick, onLogCall }: WhatsNextCard
   function handleCardClick(e: React.MouseEvent) {
     e.preventDefault()
     onCardClick(account)
-  }
-
-  function handleLogCall(e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    onLogCall(account)
   }
 
   return (
@@ -163,9 +160,9 @@ function WhatsNextCard({ account, today, onCardClick, onLogCall }: WhatsNextCard
             style={{
               fontSize: "var(--font-size-small)",
               fontWeight: "var(--font-weight-medium)",
-              background: "var(--color-surface-subtle)",
-              color: "var(--color-text-primary)",
-              borderColor: "var(--color-border-default)",
+              background: `oklch(from ${dotColor} l c h / 12%)`,
+              color: dotColor,
+              borderColor: `oklch(from ${dotColor} l c h / 30%)`,
             }}
           >
             <span
@@ -189,7 +186,7 @@ function WhatsNextCard({ account, today, onCardClick, onLogCall }: WhatsNextCard
             lineHeight: "var(--line-height-body)",
             color: "var(--color-text-primary)",
             fontWeight: "var(--font-weight-regular)",
-            borderLeft: "2px solid oklch(from var(--color-accent-primary) l c h / 40%)",
+            borderLeft: "2px solid oklch(from var(--color-accent-primary) l c h / 65%)",
             paddingLeft: "var(--spacing-sm)",
           }}
         >
@@ -209,24 +206,6 @@ function WhatsNextCard({ account, today, onCardClick, onLogCall }: WhatsNextCard
         </div>
       </a>
 
-      {/* Divider */}
-      <div
-        style={{ height: "1px", background: "var(--color-border-subtle)" }}
-        aria-hidden
-      />
-
-      {/* Footer — full-width on mobile, right-aligned on desktop */}
-      <div className="px-4 py-3 flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLogCall}
-          className="w-full sm:w-auto"
-          aria-label={`Log call for ${account.name}`}
-        >
-          Log call
-        </Button>
-      </div>
     </div>
   )
 }
@@ -261,15 +240,6 @@ function WhatsNextSkeletonCard() {
         <div className="flex justify-end">
           <Skeleton className="h-3 w-16" />
         </div>
-      </div>
-
-      <div
-        style={{ height: "1px", background: "var(--color-border-subtle)" }}
-        aria-hidden
-      />
-
-      <div className="px-4 py-3 flex justify-end">
-        <Skeleton className="h-8 w-24 rounded-md" />
       </div>
     </div>
   )
@@ -327,10 +297,9 @@ interface WhatsNextListProps {
   accounts: WhatsNextAccount[]
   today: Date
   onCardClick: (account: WhatsNextAccount) => void
-  onLogCall: (account: WhatsNextAccount) => void
 }
 
-function WhatsNextList({ accounts, today, onCardClick, onLogCall }: WhatsNextListProps) {
+function WhatsNextList({ accounts, today, onCardClick }: WhatsNextListProps) {
   if (accounts.length === 0) {
     return <WhatsNextEmptyState />
   }
@@ -345,7 +314,6 @@ function WhatsNextList({ accounts, today, onCardClick, onLogCall }: WhatsNextLis
           account={account}
           today={today}
           onCardClick={onCardClick}
-          onLogCall={onLogCall}
         />
       ))}
     </div>
@@ -367,12 +335,11 @@ interface HistoryEntryResponse {
 
 interface BusinessViewContentProps {
   business: BusinessViewData
-  onLogCall: () => void
-  onStageChange: (stage: PipelineStage) => void
+  onStageChange: (stage: CurrentStage) => void
   onNextStepChange: (text: string) => void
 }
 
-function BusinessViewContent({ business, onLogCall, onStageChange, onNextStepChange }: BusinessViewContentProps) {
+function BusinessViewContent({ business, onStageChange, onNextStepChange }: BusinessViewContentProps) {
   const { data } = useFetch<HistoryEntryResponse[]>(`/api/businesses/${business.id}/history`)
   const entries: InteractionEntry[] = (data ?? []).map((e) => ({ ...e, date: new Date(e.date) }))
 
@@ -380,12 +347,11 @@ function BusinessViewContent({ business, onLogCall, onStageChange, onNextStepCha
     <>
       <BusinessHeader
         business={business}
-        onLogCall={onLogCall}
         onStageChange={onStageChange}
         onNextStepChange={onNextStepChange}
       />
       <Separator style={{ background: "var(--color-border-default)" }} />
-      <InteractionHistory entries={entries} onLogCall={onLogCall} />
+      <InteractionHistory entries={entries} />
     </>
   )
 }
@@ -396,10 +362,12 @@ function BusinessViewContent({ business, onLogCall, onStageChange, onNextStepCha
 
 export default function WhatsNextPage() {
   const today = new Date()
-  const { data, loading } = useFetch<WhatsNextAccount[]>("/api/whats-next")
+  const { data, setData, loading, refetch } = useFetch<WhatsNextAccount[]>("/api/whats-next")
   const accounts = data ?? []
 
-  const { open: openQuickLog } = useQuickLog()
+  const { open: openQuickLog, onCallLogged } = useQuickLog()
+
+  useEffect(() => onCallLogged(refetch), [onCallLogged, refetch])
 
   const [selectedBusiness, setSelectedBusiness] = useState<BusinessViewData | null>(null)
   const isOverlayOpen = selectedBusiness !== null
@@ -408,13 +376,16 @@ export default function WhatsNextPage() {
     setSelectedBusiness(toBusinessViewData(account))
   }, [])
 
-  const openQuickLogForAccount = useCallback((account: WhatsNextAccount) => {
-    openQuickLog({ businessId: account.id, businessName: account.name })
-  }, [openQuickLog])
-
   const handleOverlayClose = useCallback(() => {
+    if (selectedBusiness && data) {
+      setData(data.map((a) =>
+        a.id === selectedBusiness.id
+          ? { ...a, stage: selectedBusiness.stage, nextStepText: selectedBusiness.nextStepText }
+          : a
+      ))
+    }
     setSelectedBusiness(null)
-  }, [])
+  }, [selectedBusiness, data, setData])
 
   const handleLogCallFromOverlay = useCallback(() => {
     if (!selectedBusiness) return
@@ -434,7 +405,7 @@ export default function WhatsNextPage() {
             )
           }
         />
-        {loading ? (
+        {data === null ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <WhatsNextSkeletonCard key={i} />
@@ -445,7 +416,6 @@ export default function WhatsNextPage() {
             accounts={accounts}
             today={today}
             onCardClick={openBusinessView}
-            onLogCall={openQuickLogForAccount}
           />
         )}
       </div>
@@ -459,7 +429,6 @@ export default function WhatsNextPage() {
         {selectedBusiness && (
           <BusinessViewContent
             business={selectedBusiness}
-            onLogCall={handleLogCallFromOverlay}
             onStageChange={(stage) =>
               setSelectedBusiness((prev) => prev ? { ...prev, stage } : prev)
             }

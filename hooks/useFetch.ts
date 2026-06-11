@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { getClientTimezone } from "@/lib/timezone";
 
 export function useFetch<T>(url: string) {
   const [data, setData] = useState<T | null>(null);
@@ -16,7 +17,11 @@ export function useFetch<T>(url: string) {
 
     async function load() {
       try {
-        const res = await fetch(url, { signal: controller.signal });
+        const tz = getClientTimezone()
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: { 'X-Timezone': tz },
+        });
         if (!res.ok) throw new Error(res.statusText);
         setData(await res.json() as T);
       } catch (e) {
@@ -33,5 +38,5 @@ export function useFetch<T>(url: string) {
 
   const refetch = useCallback(() => setVersion((v) => v + 1), []);
 
-  return { data, loading, initialLoading, refreshing, error, refetch };
+  return { data, setData, loading, initialLoading, refreshing, error, refetch };
 }

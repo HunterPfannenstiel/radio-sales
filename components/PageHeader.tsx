@@ -7,7 +7,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, badge }: PageHeaderProps) {
   return (
-    <div className="flex items-baseline gap-3">
+    <div className="flex items-center gap-3">
       <h1
         className="font-bold tracking-tight uppercase"
         style={{

@@ -4,17 +4,17 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { WeekCalendar } from './WeekCalendar'
+import { useTodayDate } from '@/hooks/useTodayDate'
 
 interface DateNavigatorProps {
   date: Date
   onChange: (monday: Date) => void
 }
 
-function getMondayOfCurrentWeek(): Date {
-  const today = new Date()
-  const day = today.getDay()
-  const monday = new Date(today)
-  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
+function getMondayOf(date: Date): Date {
+  const day = date.getDay()
+  const monday = new Date(date)
+  monday.setDate(date.getDate() - (day === 0 ? 6 : day - 1))
   monday.setHours(0, 0, 0, 0)
   return monday
 }
@@ -22,16 +22,15 @@ function getMondayOfCurrentWeek(): Date {
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F'] as const
 
 function WeekDayStrip({ monday }: { monday: Date }) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = useTodayDate()
 
   return (
     <div className="flex gap-6 px-1 justify-center">
       {WEEKDAY_LABELS.map((label, i) => {
         const day = new Date(monday)
         day.setDate(monday.getDate() + i)
-        const isToday = day.getTime() === today.getTime()
-        const filled = day.getTime() <= today.getTime()
+        const isToday = today !== null && day.getTime() === today.getTime()
+        const filled = today !== null && day.getTime() <= today.getTime()
 
         return (
           <div key={i} className="flex flex-col items-center gap-1">
@@ -66,8 +65,9 @@ function WeekDayStrip({ monday }: { monday: Date }) {
 
 export function DateNavigator({ date, onChange }: DateNavigatorProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const today = useTodayDate()
 
-  const isCurrentWeek = date.getTime() === getMondayOfCurrentWeek().getTime()
+  const isCurrentWeek = today !== null && date.getTime() === getMondayOf(today).getTime()
 
   const weekEnd = new Date(date)
   weekEnd.setDate(date.getDate() + 6)
