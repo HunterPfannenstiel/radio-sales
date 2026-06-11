@@ -103,6 +103,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
     prefill?.businessId
   )
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [inputFocused, setInputFocused] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const isBusinessLocked = Boolean(prefill?.businessName)
@@ -211,7 +212,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 overflow-y-auto px-4">
         {/* The Call section header */}
         <div className="mb-4">
           <div className="flex items-baseline justify-between">
@@ -248,7 +249,8 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                   value={business}
                   disabled={isBusinessLocked}
                   onChange={(e) => handleBusinessChange(e.target.value)}
-                  onFocus={handleBusinessFocus}
+                  onFocus={() => { handleBusinessFocus(); setInputFocused(true) }}
+                  onBlur={() => setInputFocused(false)}
                   autoComplete="off"
                   className={cn(isBusinessLocked && "bg-muted text-muted-foreground")}
                 />
@@ -504,7 +506,8 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
-                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "center" })}
+                onFocus={(e) => { e.target.scrollIntoView({ behavior: "smooth", block: "center" }); setInputFocused(true) }}
+                onBlur={() => setInputFocused(false)}
                 autoComplete="off"
                 min={0}
               />
@@ -521,7 +524,8 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                 placeholder="0"
                 value={termValue}
                 onChange={(e) => setTermValue(e.target.value)}
-                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "center" })}
+                onFocus={(e) => { e.target.scrollIntoView({ behavior: "smooth", block: "center" }); setInputFocused(true) }}
+                onBlur={() => setInputFocused(false)}
                 autoComplete="off"
                 className="flex-1"
                 min={0}
@@ -548,30 +552,30 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
             )}
           </Field>
         </FieldGroup>
-      </div>
 
-      <div
-        className="px-4 pt-3 pb-4 border-t border-border bg-popover shrink-0"
-        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
-      >
-        {submitError && (
-          <p
-            className="mb-2 text-xs text-center"
-            style={{ color: "var(--color-status-warning)" }}
-          >
-            {submitError}
-          </p>
-        )}
-        <Button className="w-full h-10" disabled={!canSubmit} onClick={handleSubmit}>
-          {loading ? (
-            <>
-              <Spinner />
-              Logging…
-            </>
-          ) : (
-            "Log Call"
+        <div
+          className={cn("mt-6 pb-4", !inputFocused && "sticky bottom-0 bg-popover pt-3 border-t border-border")}
+          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        >
+          {submitError && (
+            <p
+              className="mb-2 text-xs text-center"
+              style={{ color: "var(--color-status-warning)" }}
+            >
+              {submitError}
+            </p>
           )}
-        </Button>
+          <Button className="w-full h-10" disabled={!canSubmit} onClick={handleSubmit}>
+            {loading ? (
+              <>
+                <Spinner />
+                Logging…
+              </>
+            ) : (
+              "Log Call"
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )
