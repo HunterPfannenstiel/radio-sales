@@ -65,7 +65,6 @@ export function BusinessView({
           aria-label={title}
           className={cn("h-[85vh] flex flex-col overflow-hidden", className)}
           style={{
-            background: "var(--color-surface-card)",
             borderRadius: "var(--radius-xl) var(--radius-xl) 0 0",
             border: "1px solid var(--color-border-default)",
           }}

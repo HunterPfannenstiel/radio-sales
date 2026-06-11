@@ -29,7 +29,7 @@ const GOALS = {
 // Types
 // ---------------------------------------------------------------------------
 
-type WhatNext = "followup_call" | "send_proposal" | "schedule_demo" | "send_contract" | "check_in";
+type WhatNext = "followup_call" | "send_spec_spot" | "send_proposal" | "set_appointment" | "send_contract" | "check_in";
 type Confidence = "in" | "sure" | "expect" | "hope";
 type Outcome = "yes" | "no" | "pending";
 type TermUnit = "weeks" | "months";
@@ -104,7 +104,7 @@ const FEB: CallDef[] = [
   { businessName: "American Services", stage: "close", whatNext: "send_contract", outcome: "yes", budget: 2_400, termValue: 1, termUnit: "months", loggedAt: iso(2, 18, 14) },
 
   // Pipeline
-  { businessName: "Don Hattan Chevrolet", stage: "present", whatNext: "schedule_demo", outcome: "pending", budget: 6_000, termValue: 3, termUnit: "months", confidence: "sure", loggedAt: iso(2, 10, 11) },
+  { businessName: "Don Hattan Chevrolet", stage: "present", whatNext: "send_proposal", outcome: "pending", budget: 6_000, termValue: 3, termUnit: "months", confidence: "sure", loggedAt: iso(2, 10, 11) },
   { businessName: "Meritrust Credit Union", stage: "present", whatNext: "send_proposal", outcome: "pending", budget: 4_800, termValue: 2, termUnit: "months", confidence: "expect", loggedAt: iso(2, 17, 10) },
   { businessName: "Super Car Guys", stage: "uncover", whatNext: "send_proposal", outcome: "pending", budget: 3_000, termValue: 1, termUnit: "months", confidence: "hope", loggedAt: iso(2, 24, 9) },
 
@@ -153,7 +153,7 @@ const MAR: CallDef[] = [
   { businessName: "Siena Steakhouse", stage: "close", whatNext: "send_contract", outcome: "yes", budget: 1_200, termValue: 1, termUnit: "months", loggedAt: iso(3, 25, 10) },
 
   // Pipeline
-  { businessName: "Fahnestock HVAC", stage: "present", whatNext: "schedule_demo", outcome: "pending", budget: 4_800, termValue: 3, termUnit: "months", confidence: "sure", loggedAt: iso(3, 12, 10) },
+  { businessName: "Fahnestock HVAC", stage: "present", whatNext: "send_proposal", outcome: "pending", budget: 4_800, termValue: 3, termUnit: "months", confidence: "sure", loggedAt: iso(3, 12, 10) },
   { businessName: "Wesley Medical Center", stage: "present", whatNext: "send_proposal", outcome: "pending", budget: 3_600, termValue: 2, termUnit: "months", confidence: "expect", loggedAt: iso(3, 19, 9) },
   { businessName: "Cessna Aircraft", stage: "uncover", whatNext: "followup_call", outcome: "pending", budget: 6_000, termValue: 3, termUnit: "months", confidence: "hope", loggedAt: iso(3, 26, 11) },
 
@@ -190,7 +190,7 @@ const MAR: CallDef[] = [
   { businessName: "Hunter Health Clinic", stage: "approach", whatNext: "followup_call", loggedAt: iso(3, 23, 14) },
   { businessName: "Donovan Auto & Truck Center", stage: "approach", whatNext: "followup_call", budget: 4_800, termValue: 2, termUnit: "months", confidence: "hope", loggedAt: iso(3, 24, 10) },
   { businessName: "GraceMed Health Clinic", stage: "approach", whatNext: "followup_call", loggedAt: iso(3, 25, 14) },
-  { businessName: "Super Car Guys", stage: "present", whatNext: "schedule_demo", budget: 3_000, termValue: 1, termUnit: "months", confidence: "expect", loggedAt: iso(3, 26, 9) },
+  { businessName: "Super Car Guys", stage: "present", whatNext: "send_proposal", budget: 3_000, termValue: 1, termUnit: "months", confidence: "expect", loggedAt: iso(3, 26, 9) },
   { businessName: "Skyward Credit Union", stage: "approach", whatNext: "followup_call", budget: 1_800, termValue: 1, termUnit: "months", confidence: "hope", loggedAt: iso(3, 27, 10) },
 ];
 
@@ -260,7 +260,7 @@ const MAY: CallDef[] = [
   { businessName: "GraceMed Health Clinic", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 5, 14) },
   { businessName: "Spirit AeroSystems", stage: "approach", whatNext: "followup_call", budget: 3_600, termValue: 2, termUnit: "months", confidence: "hope", loggedAt: iso(5, 6, 10) },
   { businessName: "Bradley Fair Shopping Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 6, 14) },
-  { businessName: "Cessna Aircraft", stage: "present", whatNext: "schedule_demo", budget: 6_000, termValue: 3, termUnit: "months", confidence: "expect", loggedAt: iso(5, 7, 9) },
+  { businessName: "Cessna Aircraft", stage: "present", whatNext: "send_proposal", budget: 6_000, termValue: 3, termUnit: "months", confidence: "expect", loggedAt: iso(5, 7, 9) },
   { businessName: "Wesley Medical Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 7, 14) },
   { businessName: "Siena Steakhouse", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 8, 9) },
 

@@ -123,8 +123,16 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
   const approxMonths =
     termUnit === "weeks" && termWeeks > 0 ? Math.floor(termWeeks / 4) : null
 
+  const budgetFilled = Number(budget) > 0
+  const termFilled = Number(termValue) > 0
+  const eitherFilled = budgetFilled || termFilled
+
   const canSubmit =
-    business.trim().length > 0 && stage.length > 0 && whatNext.length > 0 && !loading
+    business.trim().length > 0 &&
+    stage.length > 0 &&
+    whatNext.length > 0 &&
+    !loading &&
+    (!eitherFilled || (budgetFilled && termFilled))
 
   const showMruChips =
     !isBusinessLocked &&
@@ -183,7 +191,6 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
 
   function handleStageChange(val: string) {
     setStage(val)
-    setWhatNext("")
   }
 
   async function handleSubmit() {
@@ -196,8 +203,8 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
         businessId: selectedBusinessId,
         stage,
         whatNext,
-        budget: budget ? Number(budget) : undefined,
-        termValue: termValue ? Number(termValue) : undefined,
+        budget: Number(budget) > 0 ? Number(budget) : undefined,
+        termValue: Number(termValue) > 0 ? Number(termValue) : undefined,
         termUnit,
         confidence: outcome === "yes" ? "in" : (confidence || undefined),
         outcome: outcome || undefined,
@@ -493,7 +500,14 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
 
           {/* Budget */}
           <Field>
-            <FieldLabel htmlFor="budget">Budget</FieldLabel>
+            <FieldLabel htmlFor="budget" className="flex items-center gap-1.5">
+              Budget
+              {eitherFilled && !budgetFilled && (
+                <span style={{ fontSize: "var(--font-size-micro)", color: "var(--color-accent-primary)" }}>
+                  · Required
+                </span>
+              )}
+            </FieldLabel>
             <InputGroup>
               <InputGroupAddon>
                 <InputGroupText>$</InputGroupText>
@@ -501,29 +515,39 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
               <InputGroupInput
                 id="budget"
                 type="number"
+                inputMode="decimal"
+                pattern="[0-9]*"
                 placeholder="0"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
-                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                 autoComplete="off"
                 min={0}
+                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </InputGroup>
           </Field>
 
           {/* Term Length */}
           <Field>
-            <FieldLabel htmlFor="term-value">Term Length</FieldLabel>
+            <FieldLabel htmlFor="term-value" className="flex items-center gap-1.5">
+              Term Length
+              {eitherFilled && !termFilled && (
+                <span style={{ fontSize: "var(--font-size-micro)", color: "var(--color-accent-primary)" }}>
+                  · Required
+                </span>
+              )}
+            </FieldLabel>
             <div className="flex gap-2">
               <Input
                 id="term-value"
                 type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="0"
                 value={termValue}
                 onChange={(e) => setTermValue(e.target.value)}
-                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                 autoComplete="off"
-                className="flex-1"
+                className="flex-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 min={0}
               />
               <Select

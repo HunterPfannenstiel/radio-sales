@@ -9,12 +9,12 @@ import { QuickLogContainer } from "@/components/QuickLogContainer"
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <QuickLogProvider>
-      <div className="flex h-svh">
+      <div className="flex md:h-svh">
         {/* Desktop sidebar — hidden on mobile */}
         <DesktopSidebar />
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <main className="flex-1 md:overflow-y-auto pb-16 md:pb-0">
           {children}
         </main>
       </div>

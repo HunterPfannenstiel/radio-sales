@@ -1,6 +1,7 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
 import { type Store } from "@/lib/blob/schema";
+import { NEXT_STEPS } from "@/lib/types";
 
 export type WhatsNextBusinessDTO = {
   id: string;
@@ -14,13 +15,7 @@ export interface IWhatsNextQuery {
   execute(repId: string): Promise<WhatsNextBusinessDTO[]>;
 }
 
-const NEXT_STEP_LABELS: Record<string, string> = {
-  followup_call: "Follow-up call",
-  send_proposal: "Send proposal",
-  schedule_demo: "Schedule demo",
-  send_contract: "Send contract",
-  check_in: "Check in",
-};
+const NEXT_STEP_LABELS = Object.fromEntries(NEXT_STEPS.map((s) => [s.value, s.label]));
 
 export class BlobWhatsNextQuery implements IWhatsNextQuery {
   async execute(repId: string): Promise<WhatsNextBusinessDTO[]> {

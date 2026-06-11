@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useRef } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useRequest } from "@/hooks/useRequest"
 import { useToast } from "@/hooks/useToast"
 import { type CurrentStage, STAGE_LABELS, STAGE_ORDERED, STAGE_POSITION } from "@/lib/types"
@@ -65,36 +65,16 @@ interface NextStepProps {
 }
 
 function NextStep({ text, onSave, isSaving }: NextStepProps) {
-  const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(text)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [focused, setFocused] = useState(false)
 
   useEffect(() => {
-    if (!editing) setValue(text)
-  }, [text, editing])
-
-  const startEdit = useCallback(() => {
-    setValue(text)
-    setEditing(true)
-  }, [text])
-
-  useEffect(() => {
-    if (!editing) return
-    const el = inputRef.current
-    if (!el) return
-    el.focus()
-    el.setSelectionRange(el.value.length, el.value.length)
-  }, [editing])
-
-  const cancel = useCallback(() => {
-    setEditing(false)
-    setValue(text)
-  }, [text])
+    if (!focused) setValue(text)
+  }, [text, focused])
 
   const save = useCallback(() => {
     const trimmed = value.trim()
     if (!trimmed || isSaving) return
-    setEditing(false)
     onSave(trimmed)
   }, [value, isSaving, onSave])
 
@@ -102,28 +82,16 @@ function NextStep({ text, onSave, isSaving }: NextStepProps) {
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
         e.preventDefault()
-        save()
+        e.currentTarget.blur()
       }
       if (e.key === "Escape") {
         e.preventDefault()
-        cancel()
+        setValue(text)
+        e.currentTarget.blur()
       }
     },
-    [save, cancel]
+    [text]
   )
-
-  const fieldStyle: React.CSSProperties = {
-    width: "100%",
-    fontSize: "var(--font-size-body)",
-    lineHeight: "var(--line-height-body)",
-    color: "var(--color-text-primary)",
-    background: "transparent",
-    border: `1px solid ${editing ? "var(--color-border-default)" : "var(--color-border-subtle)"}`,
-    borderRadius: "var(--radius-sm)",
-    padding: "7px 10px",
-    outline: "none",
-    transition: `border-color var(--duration-fast)`,
-  }
 
   return (
     <div className="flex flex-col gap-1">
@@ -139,33 +107,29 @@ function NextStep({ text, onSave, isSaving }: NextStepProps) {
         Next Step
       </span>
 
-      {editing ? (
-        <input
-          type="text"
-          ref={inputRef}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={save}
-          disabled={isSaving}
-          style={{
-            ...fieldStyle,
-            fontSize: "max(16px, var(--font-size-body))",
-          }}
-        />
-      ) : (
-        <button
-          onClick={startEdit}
-          aria-label="Edit next step"
-          className="w-full text-left"
-          style={{
-            ...fieldStyle,
-            cursor: "text",
-          }}
-        >
-          {text}
-        </button>
-      )}
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => { setFocused(false); save() }}
+        onKeyDown={handleKeyDown}
+        disabled={isSaving}
+        aria-label="Next step"
+        style={{
+          width: "100%",
+          fontSize: "max(16px, var(--font-size-body))",
+          lineHeight: "var(--line-height-body)",
+          color: "var(--color-text-primary)",
+          background: "transparent",
+          border: `1px solid ${focused ? "var(--color-border-default)" : "var(--color-border-subtle)"}`,
+          borderRadius: "var(--radius-sm)",
+          padding: "7px 10px",
+          outline: "none",
+          transition: `border-color var(--duration-fast)`,
+          cursor: focused ? "text" : "default",
+        }}
+      />
     </div>
   )
 }

@@ -29,7 +29,9 @@ export const STAGE_POSITION: Record<CurrentStage, number> = {
   service: 5,
 }
 
-export const NEXT_STEPS = [
+import type { WhatNext } from "@/lib/blob/schema";
+
+export const NEXT_STEPS: { value: WhatNext; label: string }[] = [
   { value: "followup_call", label: "Follow-up call" },
   { value: "send_spec_spot", label: "Send spec spot" },
   { value: "send_proposal", label: "Send proposal" },

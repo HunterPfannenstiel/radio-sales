@@ -4,17 +4,28 @@ import { Mutations } from "@/server/mutations";
 import { Roles } from "@/server/roles/Roles";
 import { CALL_OUTCOMES, CALL_CONFIDENCES, WHAT_NEXT_OPTIONS, TERM_UNITS } from "@/lib/blob/schema";
 
-const logCallBodySchema = z.object({
-  businessName: z.string().min(1),
-  businessId: z.string().optional(),
-  stage: z.string().min(1),
-  whatNext: z.enum(WHAT_NEXT_OPTIONS),
-  budget: z.number().optional(),
-  termValue: z.number().optional(),
-  termUnit: z.enum(TERM_UNITS).optional(),
-  confidence: z.enum(CALL_CONFIDENCES).optional(),
-  outcome: z.enum(CALL_OUTCOMES).optional(),
-});
+const logCallBodySchema = z
+  .object({
+    businessName: z.string().min(1),
+    businessId: z.string().optional(),
+    stage: z.string().min(1),
+    whatNext: z.enum(WHAT_NEXT_OPTIONS),
+    budget: z.number().optional(),
+    termValue: z.number().optional(),
+    termUnit: z.enum(TERM_UNITS).optional(),
+    confidence: z.enum(CALL_CONFIDENCES).optional(),
+    outcome: z.enum(CALL_OUTCOMES).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasBudget = data.budget !== undefined && data.budget > 0;
+    const hasTerm = data.termValue !== undefined && data.termValue > 0;
+    if (hasBudget && !hasTerm) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "termValue is required when budget is provided", path: ["termValue"] });
+    }
+    if (hasTerm && !hasBudget) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "budget is required when termValue is provided", path: ["budget"] });
+    }
+  });
 
 export async function POST(request: NextRequest) {
   const repId = process.env.CURRENT_REP_ID;
