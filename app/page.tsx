@@ -25,6 +25,7 @@ type DashboardData = {
   asks: { count: number; target: number; paceStatus: ActivityPaceStatus }
   daysRemainingInWeek: number
   weekNumber: number
+  weeklyPresentTarget: number
 }
 
 const PACE_STATUS_LABELS: Record<PaceStatus | ActivityPaceStatus, string> = {
@@ -284,6 +285,7 @@ interface ActivityCardProps {
   daysRemaining: number
   isCurrentWeek: boolean
   refreshing?: boolean
+  weeklyPresentTarget?: number
 }
 
 function ActivityCard({
@@ -294,6 +296,7 @@ function ActivityCard({
   daysRemaining,
   isCurrentWeek,
   refreshing = false,
+  weeklyPresentTarget,
 }: ActivityCardProps) {
   const label = type === "calls" ? "Calls" : "Asks"
   const statusColor = paceStatusToColor(paceStatus)
@@ -409,6 +412,24 @@ function ActivityCard({
         >
           {footerText}
         </span>
+
+        {type === "asks" && isCurrentWeek && weeklyPresentTarget != null && weeklyPresentTarget > 0 && (
+          <span
+            style={{
+              fontSize: "var(--font-size-small)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            Present{" "}
+            <span
+              className="font-bold"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              {formatCurrency(weeklyPresentTarget)}/wk
+            </span>{" "}
+            to hit your goal
+          </span>
+        )}
       </div>
     </div>
   )
@@ -423,6 +444,7 @@ interface ActivityPaceSectionProps {
   asks: DashboardData["asks"]
   daysRemainingInWeek: number
   isCurrentWeek: boolean
+  weeklyPresentTarget?: number
   refreshing?: boolean
 }
 
@@ -431,6 +453,7 @@ function ActivityPaceSection({
   asks,
   daysRemainingInWeek,
   isCurrentWeek,
+  weeklyPresentTarget,
   refreshing = false,
 }: ActivityPaceSectionProps) {
   return (
@@ -451,6 +474,7 @@ function ActivityPaceSection({
         paceStatus={asks.paceStatus}
         daysRemaining={daysRemainingInWeek}
         isCurrentWeek={isCurrentWeek}
+        weeklyPresentTarget={weeklyPresentTarget}
         refreshing={refreshing}
       />
     </div>
@@ -512,6 +536,7 @@ export default function DashboardPage() {
             asks={data.asks}
             daysRemainingInWeek={data.daysRemainingInWeek}
             isCurrentWeek={isCurrentWeek}
+            weeklyPresentTarget={data.weeklyPresentTarget}
             refreshing={refreshing}
           />
         </>

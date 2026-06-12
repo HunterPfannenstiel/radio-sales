@@ -29,6 +29,7 @@ export type DashboardDTO = {
   asks: { count: number; target: number; paceStatus: ActivityPaceStatus };
   daysRemainingInWeek: number;
   weekNumber: number;
+  weeklyPresentTarget: number;
 };
 
 export interface IDashboardQuery {
@@ -44,7 +45,7 @@ function countWorkingDays(start: Date, end: Date): number {
   let count = 0;
   const cur = new Date(start);
   while (cur <= end) {
-    const dow = cur.getDay(); // 0=Sun, 6=Sat
+    const dow = cur.getUTCDay(); // 0=Sun, 6=Sat
     if (dow >= 1 && dow <= 5) count++;
     cur.setDate(cur.getDate() + 1);
   }
@@ -221,15 +222,11 @@ export class BlobDashboardQuery implements IDashboardQuery {
       (log) => log.budget != null && log.budget !== undefined
     ).length;
 
-    // Days remaining in week after today (Mon–Fri only)
+    // Days remaining in week including today (Mon–Fri only)
     let daysRemainingInWeek = 0;
     if (todayUTC <= weekFriday) {
-      // Days remaining = Mon–Fri days strictly after today through Friday
-      const afterToday = new Date(todayUTC);
-      afterToday.setUTCDate(todayUTC.getUTCDate() + 1);
-      if (afterToday <= weekFriday) {
-        daysRemainingInWeek = countWorkingDays(afterToday, weekFriday);
-      }
+      const startFrom = todayUTC >= weekMonday ? todayUTC : weekMonday;
+      daysRemainingInWeek = countWorkingDays(startFrom, weekFriday);
     }
 
     // Working days elapsed in week (Mon through today, capped at 5)
@@ -255,6 +252,18 @@ export class BlobDashboardQuery implements IDashboardQuery {
       : askCount >= askExpected ? "on_pace"
       : "behind";
 
+    const gap = goalAmount - soldAmount;
+    let weeklyPresentTarget = 0;
+    if (gap > 0 && goalAmount > 0 && !isPastMonth) {
+      const daysInMonth = monthEnd.getUTCDate();
+      const remainingDays =
+        todayUTC.getUTCFullYear() === year && todayUTC.getUTCMonth() === month
+          ? Math.max(1, daysInMonth - todayUTC.getUTCDate())
+          : daysInMonth;
+      const weeksLeft = Math.max(1, remainingDays / 5);
+      weeklyPresentTarget = Math.ceil(gap / weeksLeft);
+    }
+
     return {
       moneyPace: {
         soldAmount,
@@ -275,6 +284,7 @@ export class BlobDashboardQuery implements IDashboardQuery {
       },
       daysRemainingInWeek,
       weekNumber,
+      weeklyPresentTarget,
     };
   }
 }
