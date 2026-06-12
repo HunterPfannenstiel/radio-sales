@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { WeekCalendar } from './WeekCalendar'
+import { getISOWeekNumber } from './useWeekCalendar'
 import { useTodayDate } from '@/hooks/useTodayDate'
 
 interface DateNavigatorProps {
@@ -18,6 +19,7 @@ function getMondayOf(date: Date): Date {
   monday.setHours(0, 0, 0, 0)
   return monday
 }
+
 
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F'] as const
 
@@ -72,10 +74,12 @@ export function DateNavigator({ date, onChange }: DateNavigatorProps) {
   const weekEnd = new Date(date)
   weekEnd.setDate(date.getDate() + 6)
 
-  const weekLabel =
+  const weekNumber = getISOWeekNumber(date)
+  const dateRange =
     date.getMonth() === weekEnd.getMonth()
       ? `${date.toLocaleString('default', { month: 'short' })} ${date.getDate()}–${weekEnd.getDate()}`
       : `${date.toLocaleString('default', { month: 'short' })} ${date.getDate()} – ${weekEnd.toLocaleString('default', { month: 'short' })} ${weekEnd.getDate()}`
+  const weekLabel = `Week ${weekNumber} · ${dateRange}`
 
 
   function handlePrevWeek() {

@@ -82,8 +82,8 @@ const OUTCOME_STYLES: Record<string, { bg: string; bgDim: string; color: string 
     color: "var(--color-text-inverse)",
   },
   pending: {
-    bg: "var(--color-surface-subtle)",
-    bgDim: "var(--color-surface-subtle)",
+    bg: "var(--color-status-pending)",
+    bgDim: "color-mix(in oklch, var(--color-status-pending) 30%, transparent)",
     color: "var(--color-text-primary)",
   },
 }
@@ -405,7 +405,7 @@ export function QuickLogForm({ prefill, onClose }: QuickLogFormProps) {
                     style={{
                       background: isSelected ? styles.bg : styles.bgDim,
                       color: isSelected ? styles.color : "var(--color-text-primary)",
-                      border: isSelected && opt.value === "pending" ? "2px solid var(--color-border-strong)" : "2px solid transparent",
+                      border: "2px solid transparent",
                     }}
                   >
                     {opt.label}

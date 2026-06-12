@@ -67,11 +67,11 @@ export function WeekCalendar({ selectedDate, onSelectWeek }: WeekCalendarProps) 
             <span
               className={
                 week.relativeLabel
-                  ? 'text-xs font-medium text-primary w-20 shrink-0'
-                  : 'text-xs text-muted-foreground tabular-nums w-20 shrink-0'
+                  ? 'text-xs font-medium text-primary w-24 shrink-0'
+                  : 'text-xs text-muted-foreground tabular-nums w-24 shrink-0'
               }
             >
-              {week.relativeLabel ?? `W${week.weekNumber}`}
+              {week.relativeLabel ?? `Week ${week.weekNumber}`}
             </span>
 
             <span className="flex-1" />

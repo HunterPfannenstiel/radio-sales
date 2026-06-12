@@ -9,7 +9,7 @@ export interface WeekRow {
   relativeLabel?: string
 }
 
-function getISOWeekNumber(date: Date): number {
+export function getISOWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   const dayNum = d.getUTCDay() || 7
   d.setUTCDate(d.getUTCDate() + 4 - dayNum)
