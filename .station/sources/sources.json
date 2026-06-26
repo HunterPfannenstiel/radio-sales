@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Spotio",
+    "url": "https://www.spotio.com",
+    "description": "Mobile logging flow reference — closest analogue to the rep's daily quick-log experience. Minimize taps between 'open app' and 'call logged.'",
+    "tags": ["competitor", "design-inspiration"]
+  },
+  {
+    "name": "Pipedrive",
+    "url": "https://www.pipedrive.com",
+    "description": "Opportunity progression UI reference — stage-based pipeline and kanban-to-detail-view pattern informs opportunity history and next-step flow.",
+    "tags": ["competitor", "design-inspiration"]
+  },
+  {
+    "name": "Ambition",
+    "url": "https://www.ambition.com",
+    "description": "Gamification & motivation layer reference — leaderboards, streaks, celebration moments. 'Fun rather than forced' philosophy for private bests and percent-to-goal competition.",
+    "tags": ["competitor", "design-inspiration"]
+  },
+  {
+    "name": "LevelEleven",
+    "url": "https://www.leveleleven.com",
+    "description": "Dashboard & pacing concept reference — 'am I ahead or behind right now?' answered with a single color-coded glance. Direct antecedent to the flight deck dashboard.",
+    "tags": ["competitor", "design-inspiration"]
+  }
+]

@@ -1,9 +1,0 @@
-This feature defines the sales manager dashboard and drill-down experience used to coach reps and diagnose performance gaps. The goal is to give a manager a fast, objective view of who is on pace, who is behind, and why—without requiring the manager to manually sift through raw activity logs.
-
-The manager dashboard defaults to the current month. The top-level view is a rep-first list, designed for quick scanning and prioritization. For each rep, the manager sees Sold percent to goal, Projected versus goal, and activity pace indicators. The dashboard is intended to function like “analytics for sales activity,” highlighting which reps need attention and what dimension of performance is driving the gap.
-
-Managers have visibility into rep-level dollar amounts for Sold and Projected in drill-down views (not just percent-to-goal). This supports practical coaching conversations around budget levels, deal size, and realistic pacing.
-
-When a manager clicks into a rep, the first drill-down view is a diagnostic summary rather than a raw log. The diagnostic summary surfaces the key drivers: activity pace, asks, closing ratio, and average account value, with links into the underlying details as needed. This structure is designed to answer the manager’s primary question quickly: “Why is this rep behind pace?”
-
-Data correction is handled by rep ownership. Reps can edit their own logged interactions to correct mistakes, and they can do so at any time (no edit window). Managers do not edit rep logs. This preserves accountability while still allowing honest data cleanup when a rep enters an incorrect amount, outcome, or detail.

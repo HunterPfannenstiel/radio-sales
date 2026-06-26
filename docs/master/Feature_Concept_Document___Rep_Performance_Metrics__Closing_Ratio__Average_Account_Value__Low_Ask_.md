@@ -1,9 +1,0 @@
-This feature defines the core performance metrics the product calculates from rep activity so reps and managers can diagnose why performance is ahead or behind pace and coach the right behaviors. The intent is to turn daily logging into clear, objective KPIs that highlight whether the rep is doing enough focused activity, whether they are making enough asks, whether asks are turning into wins, and whether the rep is asking for strong enough budgets.
-
-An “ask” is defined as any interaction where the rep enters an ask amount. Asks can occur at any stage and are not required for a call log to be valid, but when an ask amount is entered it becomes part of the performance metrics.
-
-Closing ratio is calculated by count and defaults to the current month. It is the number of interactions marked outcome = Yes divided by the number of asks in that month. Each Yes is treated as its own Sold event and counts in the month it occurred. If a rep has zero asks in a month, closing ratio is not shown as 0%; it is treated as not applicable for that month.
-
-Average account value is calculated as the average monthly-equivalent value per Sold event (each Yes) for the month. Because buys can be short-term or long-term, all dollar-based metrics use the monthly-equivalent normalization rules defined elsewhere in the product.
-
-Low-ask detection is a coaching signal intended to help raise the rep’s average account value over time. An ask is flagged as “low” when its monthly-equivalent value is below the rep’s own average account value for the current month. If the rep has no Sold events yet in the month, the system does not flag low asks until the first Sold occurs, to avoid misleading early-month signals. These metrics are intended to be used alongside activity pace and Sold/Projected to help a manager determine whether a rep is behind due to insufficient activity, insufficient asking, low budget asks, or conversion issues.
