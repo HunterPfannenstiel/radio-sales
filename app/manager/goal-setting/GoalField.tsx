@@ -1,37 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 
 interface GoalFieldProps {
   label: string;
   value: number;
   originalValue: number;
-  isActive: boolean;
-  onActivate: () => void;
-  onDeactivate: () => void;
   onChange: (raw: string) => void;
   prefix?: string;
 }
 
-export function GoalField({
-  label,
-  value,
-  originalValue,
-  isActive,
-  onActivate,
-  onDeactivate,
-  onChange,
-  prefix,
-}: GoalFieldProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+export function GoalField({ label, value, originalValue, onChange, prefix }: GoalFieldProps) {
+  const [isFocused, setIsFocused] = useState(false);
   const isChanged = value !== originalValue;
-
-  useEffect(() => {
-    if (isActive) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }, [isActive]);
 
   const originalDisplay = prefix
     ? `${prefix}${originalValue.toLocaleString()}`
@@ -44,18 +25,15 @@ export function GoalField({
         <div className="flex items-center gap-0.5">
           {prefix && <span className="text-sm font-medium">{prefix}</span>}
           <input
-            ref={inputRef}
-            value={isActive ? String(value) : value.toLocaleString()}
+            value={isFocused ? String(value) : value.toLocaleString()}
             inputMode="numeric"
             onChange={(e) => onChange(e.target.value)}
-            onFocus={onActivate}
-            onBlur={isActive ? onDeactivate : undefined}
-            style={{ fieldSizing: "content" } as React.CSSProperties}
-            className={
-              isActive
-                ? "min-w-0 text-sm font-medium tabular-nums bg-transparent border-0 border-b border-border outline-none p-0 cursor-text"
-                : "min-w-0 text-sm font-medium tabular-nums bg-transparent border-0 outline-none p-0 cursor-text"
-            }
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            style={{ fieldSizing: "content", fontSize: "16px" } as React.CSSProperties}
+            className={`min-w-0 font-medium tabular-nums bg-transparent border-0 outline-none p-0 cursor-text ${
+              isFocused ? "border-b border-border" : ""
+            }`}
           />
         </div>
         <span className={`text-xs text-muted-foreground ${isChanged ? "visible" : "invisible"}`}>

@@ -6,7 +6,7 @@ import { GoalField } from "./GoalField";
 import { useGoalPanel } from "./hooks/useGoalPanel";
 
 export function GoalPanel() {
-  const { saved, draft, isDirty, activeField, activateField, deactivateField, updateDraft, save, reset } = useGoalPanel();
+  const { saved, draft, isDirty, updateDraft, save, reset } = useGoalPanel();
 
   return (
     <div className="flex flex-col">
@@ -26,9 +26,6 @@ export function GoalPanel() {
         label="Monthly Goal"
         value={draft.monthlyGoal}
         originalValue={saved.monthlyGoal}
-        isActive={activeField === "monthlyGoal"}
-        onActivate={() => activateField("monthlyGoal")}
-        onDeactivate={deactivateField}
         onChange={(raw) => updateDraft("monthlyGoal", raw)}
         prefix="$"
       />
@@ -41,9 +38,6 @@ export function GoalPanel() {
         label="Weekly Calls"
         value={draft.weeklyCalls}
         originalValue={saved.weeklyCalls}
-        isActive={activeField === "weeklyCalls"}
-        onActivate={() => activateField("weeklyCalls")}
-        onDeactivate={deactivateField}
         onChange={(raw) => updateDraft("weeklyCalls", raw)}
       />
       <Separator />
@@ -51,9 +45,6 @@ export function GoalPanel() {
         label="Weekly Asks"
         value={draft.weeklyAsks}
         originalValue={saved.weeklyAsks}
-        isActive={activeField === "weeklyAsks"}
-        onActivate={() => activateField("weeklyAsks")}
-        onDeactivate={deactivateField}
         onChange={(raw) => updateDraft("weeklyAsks", raw)}
       />
     </div>
