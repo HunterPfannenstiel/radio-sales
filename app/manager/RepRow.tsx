@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { RepRowData } from "./hooks/useManagerDashboard";
 import { RiskAccentBar } from "./RiskAccentBar";
 import { StackedCell } from "./StackedCell";
+import { PaceCell } from "./PaceCell";
 
 function fmt$(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -11,14 +13,9 @@ function fmtPct(n: number): string {
   return `${Math.round(n * 100)}%`;
 }
 
-const PACE_AHEAD_COLOR = "var(--color-status-success)";
-const PACE_BEHIND_COLOR = "var(--color-accent-primary)";
-
 export function RepRow({ rep }: { rep: RepRowData }) {
-  const paceColor =
-    rep.paceDirection === "ahead" ? PACE_AHEAD_COLOR : PACE_BEHIND_COLOR;
-
   return (
+    <Link href="/manager/sample" className="block cursor-pointer">
     <div
       className="flex items-stretch border-b"
       style={{
@@ -33,9 +30,8 @@ export function RepRow({ rep }: { rep: RepRowData }) {
         style={{ gridTemplateColumns: "1fr 160px 160px 200px" }}
       >
         <span
-          className="font-medium truncate"
+          className="font-heading text-xl font-bold truncate"
           style={{
-            fontSize: "var(--font-size-body)",
             color: "var(--color-text-primary)",
           }}
         >
@@ -52,13 +48,12 @@ export function RepRow({ rep }: { rep: RepRowData }) {
           secondary={fmtPct(rep.projectedPct)}
         />
 
-        <StackedCell
-          primary={fmt$(rep.sold)}
-          primaryColor={paceColor}
-          secondary={fmt$(rep.expectedPace)}
-          secondaryColor="var(--color-text-secondary)"
+        <PaceCell
+          currentDailyRate={rep.currentDailyRate}
+          requiredDailyRate={rep.requiredDailyRate}
         />
       </div>
     </div>
+    </Link>
   );
 }

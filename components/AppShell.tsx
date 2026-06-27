@@ -1,29 +1,36 @@
 "use client"
 
 import React from "react"
+import { usePathname } from "next/navigation"
 import { QuickLogProvider } from "@/components/QuickLogContext"
 import { DesktopSidebar } from "@/components/DesktopSidebar"
 import { MobileTabBar } from "@/components/MobileTabBar"
+import { ManagerSidebar } from "@/components/ManagerSidebar"
+import { ManagerTabBar } from "@/components/ManagerTabBar"
 import { QuickLogContainer } from "@/components/QuickLogContainer"
 
-export function AppShell({ children }: { children: React.ReactNode }) {
-  return (
-    <QuickLogProvider>
-      <div className="flex md:h-svh">
-        {/* Desktop sidebar — hidden on mobile */}
-        <DesktopSidebar />
+function ShellContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const isManager = pathname.startsWith("/manager")
 
-        {/* Main content area */}
+  return (
+    <>
+      <div className="flex md:h-svh">
+        {isManager ? <ManagerSidebar /> : <DesktopSidebar />}
         <main className="flex-1 md:overflow-y-auto pb-16 md:pb-0">
           {children}
         </main>
       </div>
+      {isManager ? <ManagerTabBar /> : <MobileTabBar />}
+      {!isManager && <QuickLogContainer />}
+    </>
+  )
+}
 
-      {/* Mobile tab bar — hidden on desktop */}
-      <MobileTabBar />
-
-      {/* Quick log modal/drawer — rendered once at root */}
-      <QuickLogContainer />
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <QuickLogProvider>
+      <ShellContent>{children}</ShellContent>
     </QuickLogProvider>
   )
 }
