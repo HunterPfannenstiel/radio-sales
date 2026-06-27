@@ -45,17 +45,16 @@ export function GoalField({
           {prefix && <span className="text-sm font-medium">{prefix}</span>}
           <input
             ref={inputRef}
-            readOnly={!isActive}
             value={isActive ? String(value) : value.toLocaleString()}
             inputMode="numeric"
             onChange={(e) => onChange(e.target.value)}
-            onClick={onActivate}
+            onFocus={onActivate}
             onBlur={isActive ? onDeactivate : undefined}
             style={{ fieldSizing: "content" } as React.CSSProperties}
             className={
               isActive
                 ? "min-w-0 text-sm font-medium tabular-nums bg-transparent border-0 border-b border-border outline-none p-0 cursor-text"
-                : "min-w-0 text-sm font-medium tabular-nums bg-transparent border-0 outline-none p-0 cursor-pointer"
+                : "min-w-0 text-sm font-medium tabular-nums bg-transparent border-0 outline-none p-0 cursor-text"
             }
           />
         </div>
