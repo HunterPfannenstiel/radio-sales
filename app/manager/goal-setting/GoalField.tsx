@@ -13,30 +13,39 @@ interface GoalFieldProps {
 export function GoalField({ label, value, originalValue, onChange, prefix }: GoalFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
   const isChanged = value !== originalValue;
+  const displayValue = isFocused ? String(value) : value.toLocaleString();
 
   const originalDisplay = prefix
     ? `${prefix}${originalValue.toLocaleString()}`
     : originalValue.toLocaleString();
 
   return (
-    <div className="flex items-center gap-8 py-3">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-1.5">
-        <div className="flex items-center gap-0.5">
-          {prefix && <span className="text-sm font-medium">{prefix}</span>}
+    <div className="flex items-center gap-4 py-3">
+      <span className="text-sm text-muted-foreground whitespace-nowrap shrink-0">{label}</span>
+      <div className="flex items-center gap-2">
+        {prefix && <span className="text-sm font-medium shrink-0">{prefix}</span>}
+        {/* Grid overlay: hidden span sizes the cell, input fills it exactly */}
+        <span className="inline-grid">
+          <span
+            className="invisible font-medium tabular-nums col-start-1 row-start-1 whitespace-pre"
+            style={{ fontSize: "16px" }}
+            aria-hidden
+          >
+            {displayValue}
+          </span>
           <input
-            value={isFocused ? String(value) : value.toLocaleString()}
+            value={displayValue}
             inputMode="numeric"
             onChange={(e) => onChange(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            style={{ fieldSizing: "content", fontSize: "16px" } as React.CSSProperties}
-            className={`min-w-0 font-medium tabular-nums bg-transparent border-0 outline-none p-0 cursor-text ${
+            style={{ fontSize: "16px" }}
+            className={`col-start-1 row-start-1 w-full font-medium tabular-nums bg-transparent border-0 outline-none p-0 cursor-text ${
               isFocused ? "border-b border-border" : ""
             }`}
           />
-        </div>
-        <span className={`text-xs text-muted-foreground ${isChanged ? "visible" : "invisible"}`}>
+        </span>
+        <span className={`text-xs text-muted-foreground whitespace-nowrap shrink-0 ${isChanged ? "visible" : "invisible"}`}>
           previously {originalDisplay}
         </span>
       </div>
