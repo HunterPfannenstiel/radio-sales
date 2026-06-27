@@ -1,9 +1,8 @@
 "use client";
 
 import { PrototypeLayout, PrototypeSection } from "@/app/prototype/PrototypeLayout";
-import { ManagerShell } from "@/app/manager/ManagerShell";
-import { ManagerSidebar } from "@/app/manager/ManagerSidebar";
-import { ManagerTabBar } from "@/app/manager/ManagerTabBar";
+import { ManagerSidebar } from "@/components/ManagerSidebar";
+import { ManagerTabBar } from "@/components/ManagerTabBar";
 import { ManagerDashboard } from "@/app/manager/ManagerDashboard";
 
 export default function ManagerModePrototypePage() {
@@ -11,9 +10,7 @@ export default function ManagerModePrototypePage() {
     <PrototypeLayout
       feature="Manager Mode"
       assembled={
-        <ManagerShell>
-          <ManagerDashboard />
-        </ManagerShell>
+        <ManagerDashboard />
       }
     >
       <PrototypeSection name="Manager Sidebar">
@@ -40,7 +37,7 @@ export default function ManagerModePrototypePage() {
               }}
             >
               {[
-                { label: "Rep List", active: true },
+                { label: "My Team", active: true },
                 { label: "Goal Setting", active: false },
               ].map(({ label, active }) => (
                 <div

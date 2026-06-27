@@ -98,6 +98,37 @@ function toBusinessViewData(account: WhatsNextAccount): BusinessViewData {
 
 
 // ---------------------------------------------------------------------------
+// AccountCount — accessory for PageHeader
+// ---------------------------------------------------------------------------
+
+function AccountCount({ count }: { count: number }) {
+  return (
+    <>
+      <span
+        aria-hidden
+        style={{
+          color: "var(--color-accent-primary)",
+          fontSize: "var(--font-size-h3)",
+          lineHeight: 1,
+        }}
+      >
+        ●
+      </span>
+      <span
+        aria-label={`${count} ${count !== 1 ? "accounts" : "account"}`}
+        style={{
+          fontSize: "var(--font-size-body)",
+          color: "var(--color-text-secondary)",
+          fontWeight: "var(--font-weight-regular)",
+        }}
+      >
+        {count} {count !== 1 ? "accounts" : "account"}
+      </span>
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // WhatsNextCard — unique layout per spec
 // ---------------------------------------------------------------------------
 
@@ -397,13 +428,7 @@ export default function WhatsNextPage() {
       <div className="p-4 md:p-8 flex flex-col gap-4 max-w-3xl mx-auto w-full">
         <PageHeader
           title="What's Next"
-          badge={
-            loading ? undefined : (
-              <span aria-label={`${accounts.length} account${accounts.length !== 1 ? "s" : ""}`}>
-                {accounts.length} {accounts.length !== 1 ? "accounts" : "account"}
-              </span>
-            )
-          }
+          accessory={loading ? undefined : <AccountCount count={accounts.length} />}
         />
         {data === null ? (
           <div className="flex flex-col gap-3">

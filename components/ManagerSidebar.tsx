@@ -145,7 +145,7 @@ function SidebarNavGroup({
 
 const managerNav: NavItem[] = [
   {
-    label: "Rep List",
+    label: "My Team",
     icon: (
       <Users style={{ width: "var(--icon-size-md)", height: "var(--icon-size-md)" }} />
     ),

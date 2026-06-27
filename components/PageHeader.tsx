@@ -1,13 +1,33 @@
 import React from "react"
+import { ArrowLeft } from "lucide-react"
 
 interface PageHeaderProps {
   title: string
-  badge?: React.ReactNode
+  accessory?: React.ReactNode
+  onBack?: () => void
 }
 
-export function PageHeader({ title, badge }: PageHeaderProps) {
+export function PageHeader({ title, accessory, onBack }: PageHeaderProps) {
   return (
     <div className="flex items-center gap-3">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Go back"
+          className="flex items-center justify-center shrink-0 rounded-md transition-colors"
+          style={{
+            width: "var(--touch-target-min)",
+            height: "var(--touch-target-min)",
+            color: "var(--color-text-secondary)",
+            transitionDuration: "var(--duration-fast)",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-surface-subtle)" }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent" }}
+        >
+          <ArrowLeft size={20} aria-hidden />
+        </button>
+      )}
       <h1
         className="font-bold tracking-tight uppercase"
         style={{
@@ -18,29 +38,7 @@ export function PageHeader({ title, badge }: PageHeaderProps) {
       >
         {title}
       </h1>
-      {badge && (
-        <>
-          <span
-            aria-hidden
-            style={{
-              color: "var(--color-accent-primary)",
-              fontSize: "var(--font-size-h3)",
-              lineHeight: 1,
-            }}
-          >
-            ●
-          </span>
-          <span
-            style={{
-              fontSize: "var(--font-size-body)",
-              color: "var(--color-text-secondary)",
-              fontWeight: "var(--font-weight-regular)",
-            }}
-          >
-            {badge}
-          </span>
-        </>
-      )}
+      {accessory}
     </div>
   )
 }
