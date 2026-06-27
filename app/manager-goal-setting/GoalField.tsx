@@ -34,7 +34,7 @@ export function GoalField({
         <div className="flex items-center gap-0.5">
           {prefix && <span className="text-base font-medium">{prefix}</span>}
           <input
-            value={isActive ? String(value) : value.toLocaleString()}
+            value={String(value)}
             inputMode="numeric"
             onChange={(e) => onChange(e.target.value)}
             onFocus={onActivate}
