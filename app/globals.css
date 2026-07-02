@@ -105,6 +105,7 @@
   --color-status-warning:  oklch(0.505 0.209 27.3);
   --color-status-pending:  oklch(0.87 0.18 92);
   --color-status-achieved: oklch(0.56 0.27 142.5);
+  --color-status-at-risk:  oklch(0.70 0.18 65);
 
   /* Accent */
   --color-accent-primary:    oklch(0.545 0.225 25);
@@ -214,6 +215,7 @@
   --color-status-warning:  oklch(0.627 0.209 27.3);
   --color-status-pending:  oklch(0.88 0.18 92);
   --color-status-achieved: oklch(0.65 0.27 142.5);
+  --color-status-at-risk:  oklch(0.78 0.18 65);
 
   /* Accent */
   --color-accent-primary:    oklch(0.65 0.195 25);
