@@ -9,7 +9,7 @@ import type { RosterRep } from "./hooks/mockReps";
 
 export function RepTableRow({ rep }: { rep: RosterRep }) {
   const router = useRouter();
-  const href = `/prototype/manager-dashboard-v2/${rep.id}`;
+  const href = `/manager/${rep.id}`;
 
   return (
     <TableRow

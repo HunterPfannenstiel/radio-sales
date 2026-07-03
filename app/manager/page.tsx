@@ -1,11 +1,7 @@
-"use client"
+"use client";
 
-import { ManagerDashboard } from "./ManagerDashboard";
+import { RepRoster } from "./index";
 
 export default function ManagerDashboardPage() {
-  return (
-    <div className="h-full flex flex-col">
-      <ManagerDashboard />
-    </div>
-  );
+  return <RepRoster />;
 }

@@ -1,11 +1,9 @@
-"use client"
+"use client";
 
-import { ManagerDrillDown } from "./ManagerDrillDown";
+import { useParams } from "next/navigation";
+import { DrillDown } from "./DrillDown";
 
 export default function ManagerDrillDownPage() {
-  return (
-    <div className="h-full flex flex-col">
-      <ManagerDrillDown />
-    </div>
-  );
+  const params = useParams<{ repId: string }>();
+  return <DrillDown repId={params.repId} />;
 }

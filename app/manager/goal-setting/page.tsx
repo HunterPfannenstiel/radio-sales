@@ -1,7 +1,7 @@
 "use client";
 
-import { GoalSetting } from "./GoalSetting";
+import { GoalRoster } from "./index";
 
 export default function ManagerGoalSettingPage() {
-  return <GoalSetting />;
+  return <GoalRoster />;
 }
