@@ -1,16 +1,21 @@
+"use client"
+
 import React from "react"
+import { IdentityBadge } from "@/components/IdentityBadge"
+import { MobileNavSheet } from "@/components/MobileNavSheet"
 
 export function MobileTopBar() {
   return (
     <header
-      className="md:hidden fixed top-0 inset-x-0 z-40 flex flex-col"
-      style={{ background: "var(--sidebar)" }}
+      className="md:hidden fixed top-0 inset-x-0 z-40 grid"
+      style={{ gridTemplateColumns: "auto 1fr auto", background: "var(--sidebar)" }}
     >
-      {/* Wordmark row */}
-      <div
-        className="flex items-center"
-        style={{ height: "44px", padding: "0 16px", gap: "10px" }}
-      >
+      {/* Row 1 — hamburger | wordmark | identity badge */}
+      <div className="flex items-center" style={{ height: "44px", padding: "0 8px" }}>
+        <MobileNavSheet />
+      </div>
+
+      <div className="flex items-center" style={{ height: "44px", gap: "10px" }}>
         <span
           className="shrink-0 rounded-full animate-pulse"
           style={{
@@ -35,12 +40,14 @@ export function MobileTopBar() {
         </span>
       </div>
 
-      {/* VU meter strip — acts as the visual separator */}
-      <div
-        className="flex items-end gap-px px-4"
-        aria-hidden="true"
-        style={{ height: "8px" }}
-      >
+      <div className="flex items-center justify-end" style={{ height: "44px", padding: "0 8px" }}>
+        <IdentityBadge />
+      </div>
+
+      {/* Row 2 — VU meter strip, confined to the wordmark's grid column so it never
+          drifts under the hamburger or identity badge as their widths change */}
+      <div aria-hidden="true" />
+      <div className="flex items-end gap-px" aria-hidden="true" style={{ height: "8px" }}>
         {Array.from({ length: 24 }).map((_, i) => (
           <span
             key={i}
@@ -56,6 +63,7 @@ export function MobileTopBar() {
           />
         ))}
       </div>
+      <div aria-hidden="true" />
     </header>
   )
 }

@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store, emptyStore } from "@/lib/blob/schema";
+import { type RepStore, emptyRepStore } from "@/lib/blob/schema";
 
 export type UpdateBusinessNextStepPayload = {
   repId: string;
@@ -18,11 +18,9 @@ export class BlobUpdateBusinessNextStepMutation
   async execute(payload: UpdateBusinessNextStepPayload): Promise<void> {
     const { repId, businessId, nextStep } = payload;
 
-    const store: Store = (await blob.read<Store>(paths.store)) ?? emptyStore();
+    const store: RepStore = (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
-    const business = store.businesses.find(
-      (b) => b.id === businessId && b.repId === repId
-    );
+    const business = store.businesses.find((b) => b.id === businessId);
     if (!business) {
       throw new Error("Business not found");
     }
@@ -30,6 +28,6 @@ export class BlobUpdateBusinessNextStepMutation
     business.nextStep = nextStep;
     business.nextStepUpdatedAt = new Date().toISOString();
 
-    await blob.write(paths.store, store);
+    await blob.write(paths.repStore(repId), store);
   }
 }

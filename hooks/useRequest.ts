@@ -7,12 +7,20 @@ export function useRequest<T = unknown>() {
   const [error, setError] = useState<string | null>(null);
   const { toastError } = useToast();
 
-  async function execute(url: string, options?: RequestInit): Promise<T | null> {
+  async function execute(
+    url: string,
+    options?: RequestInit,
+    requestOptions?: { toastOnError?: boolean }
+  ): Promise<T | null> {
+    const toastOnError = requestOptions?.toastOnError ?? true;
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(url, options);
-      if (!res.ok) throw new Error(res.statusText);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: string } | null;
+        throw new Error(body?.error ?? res.statusText);
+      }
       if (res.status === 204 || res.headers.get("content-length") === "0") {
         return {} as T;
       }
@@ -20,7 +28,9 @@ export function useRequest<T = unknown>() {
     } catch (e) {
       const message = e instanceof Error ? e.message : "Request failed";
       setError(message);
-      toastError(message);
+      if (toastOnError) {
+        toastError(message);
+      }
       return null;
     } finally {
       setLoading(false);

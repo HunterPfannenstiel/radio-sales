@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store, emptyStore } from "@/lib/blob/schema";
+import { type RepStore, emptyRepStore } from "@/lib/blob/schema";
 
 export type DashboardQueryParams = {
   repId: string;
@@ -84,16 +84,16 @@ export class BlobDashboardQuery implements IDashboardQuery {
   async execute(params: DashboardQueryParams): Promise<DashboardDTO> {
     const { repId, year, month, weekYear, weekNumber, timezone } = params;
 
-    const store = (await blob.read<Store>(paths.store)) ?? emptyStore();
+    const store = (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
     // -- Goals --
-    const goals = store.repGoals?.find((g) => g.repId === repId);
+    const goals = store.repGoals;
     const goalAmount = goals?.monthlyGoalAmount ?? 0;
     const weeklyCallTarget = goals?.weeklyCallTarget ?? 0;
     const weeklyAskTarget = goals?.weeklyAskTarget ?? 0;
 
     // -- All call logs for this rep --
-    const repLogs = store.callLogs.filter((c) => c.repId === repId);
+    const repLogs = store.callLogs;
 
     // -------------------------------------------------------------------------
     // Money Pace

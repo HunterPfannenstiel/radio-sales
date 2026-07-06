@@ -8,8 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "npx tsx --env-file=.env.local scripts/seed.ts",
-    "seed-remote": "USE_LOCAL_BLOB=false npx tsx --env-file=.env.local scripts/seed.ts",
+    "script": "USE_LOCAL_BLOB=true npx tsx --env-file=.env.local",
+    "script:remote": "USE_LOCAL_BLOB=false npx tsx --env-file=.env.local",
     "mvp-sync": "git fetch mvp && git ls-tree -r --name-only mvp/main | grep -E '^prompts/|.+/(CLAUDE|AGENTS)\\.md$' | xargs git checkout mvp/main -- && git add -u && git commit -m 'Pulled mvp repo' && git push origin main"
   },
   "dependencies": {

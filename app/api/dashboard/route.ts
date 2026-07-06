@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Queries } from "@/server/queries";
 import { Roles } from "@/server/roles/Roles";
 import { getRequestTimezone } from "@/lib/timezone";
+import { getSessionRepId } from "@/lib/session";
 
 const querySchema = z.object({
   month: z
@@ -13,12 +14,9 @@ const querySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const repId = process.env.CURRENT_REP_ID;
+  const repId = await getSessionRepId();
   if (!repId) {
-    return new Response(
-      JSON.stringify({ error: "CURRENT_REP_ID is not configured" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
   }
 
   if (!Roles.canViewDashboard(repId)) {

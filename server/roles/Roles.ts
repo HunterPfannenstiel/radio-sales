@@ -6,4 +6,12 @@ export class Roles {
   static canViewDashboard(_repId: string): boolean {
     return true; // Phase 0 stub
   }
+
+  static canSetGoal(_repId: string): boolean {
+    return true; // Phase 0 stub
+  }
+
+  static canViewGoals(_repId: string): boolean {
+    return true; // Phase 0 stub
+  }
 }

@@ -1,12 +1,10 @@
 import { Queries } from "@/server/queries";
+import { getSessionRepId } from "@/lib/session";
 
 export async function GET() {
-  const repId = process.env.CURRENT_REP_ID;
+  const repId = await getSessionRepId();
   if (!repId) {
-    return new Response(
-      JSON.stringify({ error: "CURRENT_REP_ID is not configured" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
   }
 
   const results = await Queries.recentBusinesses.execute(repId);

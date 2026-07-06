@@ -44,4 +44,4 @@ next-env.d.ts
 # local blob store
 .blob-store/
 
-.station/.store
+.station

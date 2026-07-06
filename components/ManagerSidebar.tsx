@@ -3,6 +3,7 @@
 import React from "react"
 import { Users, Target } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { IdentityBadge } from "@/components/IdentityBadge"
 
 type NavItem = {
   label: string
@@ -143,6 +144,17 @@ function SidebarNavGroup({
   )
 }
 
+function SidebarFooter() {
+  return (
+    <div
+      className="px-3 py-3 shrink-0"
+      style={{ borderTop: "1px solid var(--sidebar-border)" }}
+    >
+      <IdentityBadge className="w-full" />
+    </div>
+  )
+}
+
 const managerNav: NavItem[] = [
   {
     label: "My Team",
@@ -179,6 +191,7 @@ export function ManagerSidebar() {
       >
         <SidebarNavGroup label="Navigate" items={managerNav} pathname={pathname} />
       </div>
+      <SidebarFooter />
     </aside>
   )
 }

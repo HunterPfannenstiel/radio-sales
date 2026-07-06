@@ -1,3 +1,4 @@
 export const paths = {
-  store: "store.json",
+  repsIndex: "reps/index.json",
+  repStore: (repId: string) => `reps/${repId}/data.json`,
 };

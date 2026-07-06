@@ -4,6 +4,8 @@ import { BlobWhatsNextQuery } from "./WhatsNextQuery";
 import { BlobRecentBusinessesQuery } from "./RecentBusinessesQuery";
 import { BlobCallActivityQuery } from "./CallActivityQuery";
 import { BlobBusinessInteractionHistoryQuery } from "./BusinessInteractionHistoryQuery";
+import { BlobCurrentRepQuery } from "./CurrentRepQuery";
+import { BlobRepGoalsQuery } from "./RepGoalsQuery";
 
 export const Queries = {
   searchBusinesses: new BlobSearchBusinessesQuery(),
@@ -12,4 +14,6 @@ export const Queries = {
   recentBusinesses: new BlobRecentBusinessesQuery(),
   callActivity: new BlobCallActivityQuery(),
   businessInteractionHistory: new BlobBusinessInteractionHistoryQuery(),
+  currentRep: new BlobCurrentRepQuery(),
+  repGoals: new BlobRepGoalsQuery(),
 };

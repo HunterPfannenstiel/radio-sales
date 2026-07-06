@@ -10,11 +10,13 @@ export type WhatNext = typeof WHAT_NEXT_OPTIONS[number];
 export const TERM_UNITS = ["weeks", "months"] as const;
 export type TermUnit = typeof TERM_UNITS[number];
 
-export type Store = {
-  reps: { id: string; name: string }[];
+export type RepsIndex = {
+  reps: { id: string; name: string; pin: string }[];
+};
+
+export type RepStore = {
   businesses: {
     id: string;
-    repId: string;
     name: string;
     createdAt: string;
     nextStep?: string;
@@ -22,7 +24,6 @@ export type Store = {
   }[];
   callLogs: {
     id: string;
-    repId: string;
     businessId: string;
     stage: string;
     whatNext: WhatNext;
@@ -34,16 +35,10 @@ export type Store = {
     loggedAt: string;
   }[];
   repGoals: {
-    repId: string;
     monthlyGoalAmount: number;
     weeklyCallTarget: number;
     weeklyAskTarget: number;
-  }[];
+  } | null;
 };
 
-export const emptyStore = (): Store => ({
-  reps: [],
-  businesses: [],
-  callLogs: [],
-  repGoals: [],
-});
+export const emptyRepStore = (): RepStore => ({ businesses: [], callLogs: [], repGoals: null });

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { Target, TrendingUp } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 import { Spinner } from "@/components/ui/spinner"
 import { useFetch } from "@/hooks/useFetch"
 import { useQuickLog } from "@/components/QuickLogContext"
@@ -12,6 +13,8 @@ import { type PaceStatus, type ActivityPaceStatus } from "@/server/queries/Dashb
 // ---------------------------------------------------------------------------
 // Dashboard data type (mirrors DashboardDTO from server/queries/DashboardQuery)
 // ---------------------------------------------------------------------------
+
+type PeriodState = "current" | "past" | "future"
 
 type DashboardData = {
   moneyPace: {
@@ -66,6 +69,19 @@ function getMondayOfCurrentWeek(): Date {
   return monday
 }
 
+function getMonthPeriodState(monthDate: Date, today: Date): PeriodState {
+  const asTotalMonths = (d: Date) => d.getFullYear() * 12 + d.getMonth()
+  const target = asTotalMonths(monthDate)
+  const current = asTotalMonths(today)
+  if (target === current) return "current"
+  return target < current ? "past" : "future"
+}
+
+function getWeekPeriodState(monday: Date, currentMonday: Date): PeriodState {
+  if (monday.getTime() === currentMonday.getTime()) return "current"
+  return monday.getTime() < currentMonday.getTime() ? "past" : "future"
+}
+
 function paceStatusToColor(status: PaceStatus | ActivityPaceStatus): string {
   switch (status) {
     case "ahead":
@@ -80,28 +96,6 @@ function paceStatusToColor(status: PaceStatus | ActivityPaceStatus): string {
 }
 
 // ---------------------------------------------------------------------------
-// LevelMeter
-// ---------------------------------------------------------------------------
-
-function LevelMeter({ ratio, color, segments = 20 }: { ratio: number; color: string; segments?: number }) {
-  const filled = Math.round(ratio * segments)
-  return (
-    <div className="flex gap-px w-full">
-      {Array.from({ length: segments }, (_, i) => (
-        <div
-          key={i}
-          className="flex-1"
-          style={{
-            height: "10px",
-            background: i < filled ? color : "var(--color-surface-subtle)",
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // MoneyPaceCard
 // ---------------------------------------------------------------------------
 
@@ -111,7 +105,7 @@ interface MoneyPaceCardProps {
   goalAmount: number
   soldPercent: number
   paceStatus: PaceStatus
-  isCurrentMonth: boolean
+  periodState: PeriodState
   refreshing?: boolean
 }
 
@@ -121,12 +115,13 @@ function MoneyPaceCard({
   goalAmount,
   soldPercent,
   paceStatus,
-  isCurrentMonth,
+  periodState,
   refreshing = false,
 }: MoneyPaceCardProps) {
   const statusColor = paceStatusToColor(paceStatus)
   const gap = goalAmount - soldAmount
   const goalReached = soldPercent >= 100
+  const showBadge = periodState === "current" || (periodState === "past" && paceStatus === "goal_reached")
 
   // Empty state — no goal set
   if (goalAmount === 0) {
@@ -158,16 +153,24 @@ function MoneyPaceCard({
     )
   }
 
-  const meterColor = goalReached
-    ? "var(--color-status-achieved)"
-    : statusColor
-  const heroColor = goalReached
-    ? "var(--color-status-achieved)"
-    : statusColor
+  const meterColor = periodState === "future"
+    ? "var(--color-border-strong)"
+    : goalReached
+      ? "var(--color-status-achieved)"
+      : periodState === "current"
+        ? statusColor
+        : "var(--color-border-strong)"
+  const heroColor = periodState === "future"
+    ? "var(--color-text-secondary)"
+    : goalReached
+      ? "var(--color-status-achieved)"
+      : periodState === "current"
+        ? statusColor
+        : "var(--color-text-secondary)"
 
   return (
     <div
-      className={`w-full rounded-[var(--radius-card)] p-5 flex flex-col gap-4${goalReached ? " goal-reached-pulse" : ""}`}
+      className={`w-full rounded-[var(--radius-card)] p-5 flex flex-col gap-4${goalReached && periodState === "current" ? " goal-reached-pulse" : ""}`}
       style={{
         background: "var(--color-surface-card)",
         boxShadow: "0 0 0 1px var(--color-border-default)",
@@ -184,16 +187,18 @@ function MoneyPaceCard({
           </h3>
           {refreshing && <Spinner className="size-3.5" style={{ color: "var(--color-text-secondary)" }} />}
         </div>
-        <span
-          className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-          style={{
-            background: statusColor,
-            color: "var(--color-text-inverse)",
-            fontSize: "var(--font-size-small)",
-          }}
-        >
-          {PACE_STATUS_LABELS[paceStatus]}
-        </span>
+        {showBadge && (
+          <span
+            className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
+            style={{
+              background: statusColor,
+              color: "var(--color-text-inverse)",
+              fontSize: "var(--font-size-small)",
+            }}
+          >
+            {PACE_STATUS_LABELS[paceStatus]}
+          </span>
+        )}
       </div>
 
       <div
@@ -232,8 +237,11 @@ function MoneyPaceCard({
           )}
         </div>
 
-        {/* Level meter */}
-        <LevelMeter ratio={Math.min(soldPercent / 100, 1)} color={meterColor} />
+        {/* Progress bar */}
+        <Progress
+          value={Math.min(soldPercent, 100)}
+          indicatorStyle={{ background: meterColor }}
+        />
 
         {/* Supporting figures */}
         <div className="flex flex-col gap-2">
@@ -283,7 +291,7 @@ interface ActivityCardProps {
   target: number
   paceStatus: ActivityPaceStatus
   daysRemaining: number
-  isCurrentWeek: boolean
+  periodState: PeriodState
   refreshing?: boolean
   weeklyPresentTarget?: number
 }
@@ -294,13 +302,29 @@ function ActivityCard({
   target,
   paceStatus,
   daysRemaining,
-  isCurrentWeek,
+  periodState,
   refreshing = false,
   weeklyPresentTarget,
 }: ActivityCardProps) {
   const label = type === "calls" ? "Calls" : "Asks"
   const statusColor = paceStatusToColor(paceStatus)
   const ratio = target > 0 ? Math.min(count / target, 1) : 0
+  const goalReached = paceStatus === "goal_reached"
+  const showBadge = periodState === "current" || (periodState === "past" && goalReached)
+  const numberColor = periodState === "future"
+    ? "var(--color-text-secondary)"
+    : goalReached
+      ? "var(--color-status-achieved)"
+      : periodState === "current"
+        ? statusColor
+        : "var(--color-text-secondary)"
+  const progressColor = periodState === "future"
+    ? "var(--color-border-strong)"
+    : goalReached
+      ? "var(--color-status-achieved)"
+      : periodState === "current"
+        ? statusColor
+        : "var(--color-border-strong)"
 
   // Empty state — no targets set
   if (target === 0) {
@@ -357,27 +381,29 @@ function ActivityCard({
           </h3>
           {refreshing && <Spinner className="size-3.5" style={{ color: "var(--color-text-secondary)" }} />}
         </div>
-        {notStarted ? (
-          <span
-            className="shrink-0"
-            style={{
-              fontSize: "var(--font-size-small)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            Not started
-          </span>
-        ) : (
-          <span
-            className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-            style={{
-              background: statusColor,
-              color: "var(--color-text-inverse)",
-              fontSize: "var(--font-size-small)",
-            }}
-          >
-            {PACE_STATUS_LABELS[paceStatus]}
-          </span>
+        {showBadge && (
+          periodState === "current" && notStarted ? (
+            <span
+              className="shrink-0"
+              style={{
+                fontSize: "var(--font-size-small)",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              Not started
+            </span>
+          ) : (
+            <span
+              className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
+              style={{
+                background: statusColor,
+                color: "var(--color-text-inverse)",
+                fontSize: "var(--font-size-small)",
+              }}
+            >
+              {PACE_STATUS_LABELS[paceStatus]}
+            </span>
+          )
         )}
       </div>
 
@@ -389,7 +415,7 @@ function ActivityCard({
         <div className="flex items-baseline gap-1">
           <span
             className="font-bold leading-none"
-            style={{ fontSize: "var(--font-size-h1)", color: statusColor }}
+            style={{ fontSize: "var(--font-size-h1)", color: numberColor }}
           >
             {count}
           </span>
@@ -403,8 +429,8 @@ function ActivityCard({
           this week
         </span>
 
-        {/* Level meter */}
-        <LevelMeter ratio={ratio} color={statusColor} segments={target} />
+        {/* Progress bar */}
+        <Progress value={ratio * 100} indicatorStyle={{ background: progressColor }} />
 
         {/* Footer */}
         <span
@@ -413,7 +439,7 @@ function ActivityCard({
           {footerText}
         </span>
 
-        {type === "asks" && isCurrentWeek && weeklyPresentTarget != null && weeklyPresentTarget > 0 && (
+        {type === "asks" && periodState === "current" && weeklyPresentTarget != null && weeklyPresentTarget > 0 && (
           <span
             style={{
               fontSize: "var(--font-size-small)",
@@ -443,7 +469,7 @@ interface ActivityPaceSectionProps {
   calls: DashboardData["calls"]
   asks: DashboardData["asks"]
   daysRemainingInWeek: number
-  isCurrentWeek: boolean
+  periodState: PeriodState
   weeklyPresentTarget?: number
   refreshing?: boolean
 }
@@ -452,7 +478,7 @@ function ActivityPaceSection({
   calls,
   asks,
   daysRemainingInWeek,
-  isCurrentWeek,
+  periodState,
   weeklyPresentTarget,
   refreshing = false,
 }: ActivityPaceSectionProps) {
@@ -464,7 +490,7 @@ function ActivityPaceSection({
         target={calls.target}
         paceStatus={calls.paceStatus}
         daysRemaining={daysRemainingInWeek}
-        isCurrentWeek={isCurrentWeek}
+        periodState={periodState}
         refreshing={refreshing}
       />
       <ActivityCard
@@ -473,7 +499,7 @@ function ActivityPaceSection({
         target={asks.target}
         paceStatus={asks.paceStatus}
         daysRemaining={daysRemainingInWeek}
-        isCurrentWeek={isCurrentWeek}
+        periodState={periodState}
         weeklyPresentTarget={weeklyPresentTarget}
         refreshing={refreshing}
       />
@@ -487,13 +513,13 @@ function ActivityPaceSection({
 
 export default function DashboardPage() {
   const [selectedMonday, setSelectedMonday] = useState<Date>(getMondayOfCurrentWeek)
-  const isCurrentWeek = selectedMonday.getTime() === getMondayOfCurrentWeek().getTime()
+  const weekState = getWeekPeriodState(selectedMonday, getMondayOfCurrentWeek())
 
   const thursday = new Date(selectedMonday)
   thursday.setDate(selectedMonday.getDate() + 3)
   const monthParam = `${thursday.getFullYear()}-${String(thursday.getMonth() + 1).padStart(2, "0")}`
   const now = new Date()
-  const isCurrentMonth = thursday.getFullYear() === now.getFullYear() && thursday.getMonth() === now.getMonth()
+  const monthState = getMonthPeriodState(thursday, now)
   const weekYear = thursday.getFullYear()
   const weekNumber = getISOWeekNumber(selectedMonday)
   const apiUrl = `/api/dashboard?month=${monthParam}&weekYear=${weekYear}&weekNumber=${weekNumber}`
@@ -528,14 +554,14 @@ export default function DashboardPage() {
             goalAmount={data.moneyPace.goalAmount}
             soldPercent={data.moneyPace.soldPercent}
             paceStatus={data.moneyPace.paceStatus}
-            isCurrentMonth={isCurrentMonth}
+            periodState={monthState}
             refreshing={refreshing}
           />
           <ActivityPaceSection
             calls={data.calls}
             asks={data.asks}
             daysRemainingInWeek={data.daysRemainingInWeek}
-            isCurrentWeek={isCurrentWeek}
+            periodState={weekState}
             weeklyPresentTarget={data.weeklyPresentTarget}
             refreshing={refreshing}
           />

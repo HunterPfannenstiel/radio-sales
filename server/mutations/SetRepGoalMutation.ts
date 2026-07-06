@@ -1,15 +1,12 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store, emptyStore } from "@/lib/blob/schema";
+import { type RepStore, emptyRepStore } from "@/lib/blob/schema";
 
 export type SetRepGoalPayload = {
   repId: string;
   monthlyGoalAmount: number;
   weeklyCallTarget: number;
   weeklyAskTarget: number;
-  script?: {
-    repName?: string;
-  };
 };
 
 export interface ISetRepGoalMutation {
@@ -21,32 +18,10 @@ export class BlobSetRepGoalMutation implements ISetRepGoalMutation {
     const { repId, monthlyGoalAmount, weeklyCallTarget, weeklyAskTarget } =
       payload;
 
-    const store: Store = (await blob.read<Store>(paths.store)) ?? emptyStore();
+    const store: RepStore = (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
-    // Upsert rep record (only sets name if provided via script)
-    const repName = payload.script?.repName;
-    const existingRep = store.reps.find((r) => r.id === repId);
-    if (existingRep) {
-      if (repName) existingRep.name = repName;
-    } else {
-      store.reps.push({ id: repId, name: repName ?? "Rep" });
-    }
+    store.repGoals = { monthlyGoalAmount, weeklyCallTarget, weeklyAskTarget };
 
-    // Upsert goal
-    const existingGoal = store.repGoals.find((g) => g.repId === repId);
-    if (existingGoal) {
-      existingGoal.monthlyGoalAmount = monthlyGoalAmount;
-      existingGoal.weeklyCallTarget = weeklyCallTarget;
-      existingGoal.weeklyAskTarget = weeklyAskTarget;
-    } else {
-      store.repGoals.push({
-        repId,
-        monthlyGoalAmount,
-        weeklyCallTarget,
-        weeklyAskTarget,
-      });
-    }
-
-    await blob.write(paths.store, store);
+    await blob.write(paths.repStore(repId), store);
   }
 }

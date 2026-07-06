@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store } from "@/lib/blob/schema";
+import { type RepStore } from "@/lib/blob/schema";
 
 export type BusinessDTO = {
   id: string;
@@ -13,14 +13,12 @@ export interface ISearchBusinessesQuery {
 
 export class BlobSearchBusinessesQuery implements ISearchBusinessesQuery {
   async execute(repId: string, q: string): Promise<BusinessDTO[]> {
-    const store = await blob.read<Store>(paths.store);
+    const store = await blob.read<RepStore>(paths.repStore(repId));
     if (!store) return [];
 
     const lower = q.toLowerCase();
     const filtered = store.businesses.filter(
-      (b) =>
-        b.repId === repId &&
-        (q === "" || b.name.toLowerCase().includes(lower))
+      (b) => q === "" || b.name.toLowerCase().includes(lower)
     );
 
     return filtered.map((b) => ({ id: b.id, name: b.name }));

@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store, type CallOutcome, type CallConfidence, type WhatNext, emptyStore } from "@/lib/blob/schema";
+import { type RepStore, type CallOutcome, type CallConfidence, type WhatNext, emptyRepStore } from "@/lib/blob/schema";
 
 export type LogCallPayload = {
   repId: string;
@@ -41,22 +41,14 @@ export class BlobLogCallMutation implements ILogCallMutation {
     } = payload;
 
     // 1. Read store (initialize if null)
-    const store: Store = (await blob.read<Store>(paths.store)) ?? emptyStore();
+    const store: RepStore = (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
-    // 2. Ensure rep record exists
-    const repExists = store.reps.some((r) => r.id === repId);
-    if (!repExists) {
-      store.reps.push({ id: repId, name: "Demo Rep" });
-    }
-
-    // 3. Resolve business
+    // 2. Resolve business
     let resolvedBusinessId: string | undefined;
 
     // Try provided businessId first
     if (providedBusinessId) {
-      const found = store.businesses.find(
-        (b) => b.id === providedBusinessId && b.repId === repId
-      );
+      const found = store.businesses.find((b) => b.id === providedBusinessId);
       if (found) {
         resolvedBusinessId = found.id;
       }
@@ -66,7 +58,7 @@ export class BlobLogCallMutation implements ILogCallMutation {
     if (!resolvedBusinessId) {
       const nameLower = businessName.toLowerCase();
       const found = store.businesses.find(
-        (b) => b.repId === repId && b.name.toLowerCase() === nameLower
+        (b) => b.name.toLowerCase() === nameLower
       );
       if (found) {
         resolvedBusinessId = found.id;
@@ -77,7 +69,6 @@ export class BlobLogCallMutation implements ILogCallMutation {
     if (!resolvedBusinessId) {
       const newBusiness = {
         id: crypto.randomUUID(),
-        repId,
         name: businessName,
         createdAt: new Date().toISOString(),
       };
@@ -85,11 +76,10 @@ export class BlobLogCallMutation implements ILogCallMutation {
       resolvedBusinessId = newBusiness.id;
     }
 
-    // 4. Create call log
+    // 3. Create call log
     const callLogId = crypto.randomUUID();
-    const callLog: Store["callLogs"][number] = {
+    const callLog: RepStore["callLogs"][number] = {
       id: callLogId,
-      repId,
       businessId: resolvedBusinessId,
       stage,
       whatNext,
@@ -103,10 +93,10 @@ export class BlobLogCallMutation implements ILogCallMutation {
 
     store.callLogs.push(callLog);
 
-    // 5. Write updated store
-    await blob.write(paths.store, store);
+    // 4. Write updated store
+    await blob.write(paths.repStore(repId), store);
 
-    // 6. Return result
+    // 5. Return result
     return { callLogId, businessId: resolvedBusinessId };
   }
 }

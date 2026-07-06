@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useRequest } from "@/hooks/useRequest"
 import { useToast } from "@/hooks/useToast"
-import { type CurrentStage, STAGE_LABELS, STAGE_ORDERED, STAGE_POSITION } from "@/lib/types"
+import { type CurrentStage, STAGE_LABELS, STAGE_ORDERED } from "@/lib/types"
 
 export type { CurrentStage }
 
@@ -16,42 +16,6 @@ export type BusinessViewData = {
   name: string
   stage: CurrentStage
   nextStepText: string
-}
-
-// ---------------------------------------------------------------------------
-// PipelineIndicator — 5 filled/unfilled segments
-// ---------------------------------------------------------------------------
-
-interface PipelineIndicatorProps {
-  position: number
-}
-
-function PipelineIndicator({ position }: PipelineIndicatorProps) {
-  return (
-    <div
-      className="flex items-center shrink-0"
-      role="img"
-      aria-label={`Pipeline position ${position} of 5`}
-      style={{ gap: "2px" }}
-    >
-      {Array.from({ length: 5 }, (_, i) => (
-        <div
-          key={i}
-          style={{
-            width: "6px",
-            height: "8px",
-            borderRadius: "var(--radius-sm)",
-            background:
-              i < position
-                ? "var(--color-accent-primary)"
-                : "var(--color-border-default)",
-            transition: `background var(--duration-fast)`,
-          }}
-          aria-hidden
-        />
-      ))}
-    </div>
-  )
 }
 
 // ---------------------------------------------------------------------------

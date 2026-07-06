@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store, type CallOutcome } from "@/lib/blob/schema";
+import { type RepStore, type CallOutcome, emptyRepStore } from "@/lib/blob/schema";
 import { NEXT_STEPS } from "@/lib/types";
 
 export type InteractionHistoryEntryDTO = {
@@ -26,15 +26,10 @@ export class BlobBusinessInteractionHistoryQuery
     businessId: string
   ): Promise<InteractionHistoryEntryDTO[]> {
     const store =
-      (await blob.read<Store>(paths.store)) ?? {
-        reps: [],
-        businesses: [],
-        callLogs: [],
-        repGoals: [],
-      };
+      (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
     const logs = store.callLogs
-      .filter((c) => c.repId === repId && c.businessId === businessId)
+      .filter((c) => c.businessId === businessId)
       .sort(
         (a, b) =>
           new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()

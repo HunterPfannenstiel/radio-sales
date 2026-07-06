@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store, emptyStore } from "@/lib/blob/schema";
+import { type RepStore, emptyRepStore } from "@/lib/blob/schema";
 
 export type UpdateBusinessStagePayload = {
   repId: string;
@@ -18,11 +18,11 @@ export class BlobUpdateBusinessStageMutation
   async execute(payload: UpdateBusinessStagePayload): Promise<void> {
     const { repId, businessId, stage } = payload;
 
-    const store: Store = (await blob.read<Store>(paths.store)) ?? emptyStore();
+    const store: RepStore = (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
-    // Find the most recent call log for this business owned by this rep
+    // Find the most recent call log for this business
     const businessLogs = store.callLogs
-      .filter((c) => c.repId === repId && c.businessId === businessId)
+      .filter((c) => c.businessId === businessId)
       .sort(
         (a, b) =>
           new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()
@@ -36,6 +36,6 @@ export class BlobUpdateBusinessStageMutation
     // Update stage on the most recent log
     latestLog.stage = stage;
 
-    await blob.write(paths.store, store);
+    await blob.write(paths.repStore(repId), store);
   }
 }

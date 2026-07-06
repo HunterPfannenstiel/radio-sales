@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store } from "@/lib/blob/schema";
+import { type RepStore } from "@/lib/blob/schema";
 
 export type BusinessDTO = {
   id: string;
@@ -13,12 +13,12 @@ export interface IRecentBusinessesQuery {
 
 export class BlobRecentBusinessesQuery implements IRecentBusinessesQuery {
   async execute(repId: string): Promise<BusinessDTO[]> {
-    const store = await blob.read<Store>(paths.store);
+    const store = await blob.read<RepStore>(paths.repStore(repId));
     if (!store) return [];
 
-    const repLogs = store.callLogs
-      .filter((c) => c.repId === repId)
-      .sort((a, b) => new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime());
+    const repLogs = [...store.callLogs].sort(
+      (a, b) => new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()
+    );
 
     const seen = new Set<string>();
     const orderedIds: string[] = [];
@@ -29,9 +29,7 @@ export class BlobRecentBusinessesQuery implements IRecentBusinessesQuery {
       }
     }
 
-    const businessMap = new Map(
-      store.businesses.filter((b) => b.repId === repId).map((b) => [b.id, b])
-    );
+    const businessMap = new Map(store.businesses.map((b) => [b.id, b]));
 
     return orderedIds
       .map((id) => businessMap.get(id))

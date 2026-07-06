@@ -1,11 +1,22 @@
-import { blob } from "../lib/blob/index.ts";
-import { paths } from "../lib/blob/paths.ts";
-import { emptyStore, type Store } from "../lib/blob/schema.ts";
+import { blob } from "@/lib/blob";
+import { paths } from "@/lib/blob/paths";
+import { type RepsIndex, type CallOutcome, type CallConfidence, type WhatNext, emptyRepStore } from "@/lib/blob/schema";
+import { Mutations } from "@/server/mutations";
 
-const REP_ID = process.env.CURRENT_REP_ID;
-const REP_NAME = process.env.CURRENT_REP_NAME;
-if (!REP_ID) throw new Error("CURRENT_REP_ID is not set in .env.local");
-if (!REP_NAME) throw new Error("CURRENT_REP_NAME is not set in .env.local");
+// ---------------------------------------------------------------------------
+// Demo account — shared by every beta tester
+// ---------------------------------------------------------------------------
+// Anyone can sign in with this name + PIN on the login screen to see the app
+// as a rep who has been using it for the last ~6 months.
+
+const REP_NAME = "Demo Rep";
+const REP_PIN = "1234";
+
+const GOALS = {
+  monthlyGoalAmount: 12_000,
+  weeklyCallTarget: 15,
+  weeklyAskTarget: 5,
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -15,23 +26,6 @@ function iso(month: number, day: number, hour = 10): string {
   return new Date(Date.UTC(2026, month - 1, day, hour, 0, 0)).toISOString();
 }
 
-// ---------------------------------------------------------------------------
-// Goals
-// ---------------------------------------------------------------------------
-
-const GOALS = {
-  monthlyGoalAmount: 12_000,
-  weeklyCallTarget: 15,
-  weeklyAskTarget: 5,
-};
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-type WhatNext = "followup_call" | "send_spec_spot" | "send_proposal" | "set_appointment" | "send_contract" | "check_in";
-type Confidence = "in" | "sure" | "expect" | "hope";
-type Outcome = "yes" | "no" | "pending";
 type TermUnit = "weeks" | "months";
 
 type CallDef = {
@@ -41,13 +35,14 @@ type CallDef = {
   budget?: number;
   termValue?: number;
   termUnit?: TermUnit;
-  confidence?: Confidence;
-  outcome?: Outcome;
+  confidence?: CallConfidence;
+  outcome?: CallOutcome;
   loggedAt: string;
 };
 
 // ---------------------------------------------------------------------------
 // January 2026 — Way behind (~$4,200 of $12k goal)
+// New rep, ramping up: mostly first-touch approach calls, thin pipeline.
 // ---------------------------------------------------------------------------
 
 const JAN: CallDef[] = [
@@ -85,12 +80,12 @@ const JAN: CallDef[] = [
   { businessName: "Wichita Federal Credit Union", stage: "approach", whatNext: "followup_call", loggedAt: iso(1, 23, 9) },
 
   // Activity — Week 4 (Jan 26–30)
-  { businessName: "Doo-Dah Diner", stage: "check_in", whatNext: "check_in", loggedAt: iso(1, 26, 10) },
+  { businessName: "Doo-Dah Diner", stage: "service", whatNext: "check_in", loggedAt: iso(1, 26, 10) },
   { businessName: "Don Hattan Chevrolet", stage: "present", whatNext: "followup_call", loggedAt: iso(1, 27, 9) },
   { businessName: "Cessna Aircraft", stage: "approach", whatNext: "followup_call", loggedAt: iso(1, 27, 14) },
   { businessName: "Morris Laing Law", stage: "approach", whatNext: "followup_call", loggedAt: iso(1, 28, 11) },
   { businessName: "Bradley Fair Shopping Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(1, 29, 9) },
-  { businessName: "Eck Services", stage: "check_in", whatNext: "check_in", loggedAt: iso(1, 30, 10) },
+  { businessName: "Eck Services", stage: "service", whatNext: "check_in", loggedAt: iso(1, 30, 10) },
 ];
 
 // ---------------------------------------------------------------------------
@@ -134,7 +129,7 @@ const FEB: CallDef[] = [
 
   // Activity — Week 4 (Feb 23–27)
   { businessName: "Pizza Hut Corporate", stage: "approach", whatNext: "followup_call", budget: 2_400, termValue: 1, termUnit: "months", confidence: "hope", loggedAt: iso(2, 23, 10) },
-  { businessName: "American Services", stage: "check_in", whatNext: "check_in", loggedAt: iso(2, 24, 11) },
+  { businessName: "American Services", stage: "service", whatNext: "check_in", loggedAt: iso(2, 24, 11) },
   { businessName: "Bradley Fair Shopping Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(2, 25, 9) },
   { businessName: "Doo-Dah Diner", stage: "approach", whatNext: "followup_call", loggedAt: iso(2, 25, 14) },
   { businessName: "Spirit AeroSystems", stage: "uncover", whatNext: "send_proposal", budget: 3_600, termValue: 2, termUnit: "months", confidence: "hope", loggedAt: iso(2, 26, 10) },
@@ -179,8 +174,8 @@ const MAR: CallDef[] = [
 
   // Activity — Week 3 (Mar 16–20)
   { businessName: "Eck Services", stage: "approach", whatNext: "followup_call", loggedAt: iso(3, 16, 9) },
-  { businessName: "INTRUST Bank", stage: "check_in", whatNext: "check_in", loggedAt: iso(3, 16, 14) },
-  { businessName: "Don Hattan Chevrolet", stage: "check_in", whatNext: "check_in", loggedAt: iso(3, 17, 9) },
+  { businessName: "INTRUST Bank", stage: "service", whatNext: "check_in", loggedAt: iso(3, 16, 14) },
+  { businessName: "Don Hattan Chevrolet", stage: "service", whatNext: "check_in", loggedAt: iso(3, 17, 9) },
   { businessName: "Doo-Dah Diner", stage: "approach", whatNext: "followup_call", budget: 2_400, termValue: 1, termUnit: "months", confidence: "hope", loggedAt: iso(3, 18, 10) },
   { businessName: "Davis-Moore Auto Group", stage: "uncover", whatNext: "send_proposal", budget: 3_600, termValue: 2, termUnit: "months", confidence: "hope", loggedAt: iso(3, 19, 13) },
   { businessName: "Kansas Heart Hospital", stage: "uncover", whatNext: "send_proposal", budget: 6_000, termValue: 3, termUnit: "months", confidence: "sure", loggedAt: iso(3, 20, 10) },
@@ -196,6 +191,7 @@ const MAR: CallDef[] = [
 
 // ---------------------------------------------------------------------------
 // April 2026 — Way behind (~$3,600 of $12k goal)
+// A dip: heavier pipeline-building month, fewer closes.
 // ---------------------------------------------------------------------------
 
 const APR: CallDef[] = [
@@ -265,8 +261,8 @@ const MAY: CallDef[] = [
   { businessName: "Siena Steakhouse", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 8, 9) },
 
   // Activity — Week 3 (May 11–15)
-  { businessName: "Fahnestock HVAC", stage: "check_in", whatNext: "check_in", loggedAt: iso(5, 11, 9) },
-  { businessName: "Bowers Plumbing", stage: "check_in", whatNext: "check_in", loggedAt: iso(5, 11, 14) },
+  { businessName: "Fahnestock HVAC", stage: "service", whatNext: "check_in", loggedAt: iso(5, 11, 9) },
+  { businessName: "Bowers Plumbing", stage: "service", whatNext: "check_in", loggedAt: iso(5, 11, 14) },
   { businessName: "Doo-Dah Diner", stage: "approach", whatNext: "followup_call", budget: 2_400, termValue: 1, termUnit: "months", confidence: "hope", loggedAt: iso(5, 12, 9) },
   { businessName: "Donovan Auto & Truck Center", stage: "close", whatNext: "send_contract", loggedAt: iso(5, 12, 9) },
   { businessName: "American Services", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 13, 14) },
@@ -277,7 +273,7 @@ const MAY: CallDef[] = [
   { businessName: "Wichita Federal Credit Union", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 18, 9) },
   { businessName: "Meritrust Credit Union", stage: "approach", whatNext: "followup_call", budget: 3_600, termValue: 2, termUnit: "months", confidence: "hope", loggedAt: iso(5, 18, 14) },
   { businessName: "Eck Services", stage: "approach", whatNext: "followup_call", loggedAt: iso(5, 19, 9) },
-  { businessName: "Kansas Heart Hospital", stage: "check_in", whatNext: "check_in", loggedAt: iso(5, 20, 14) },
+  { businessName: "Kansas Heart Hospital", stage: "service", whatNext: "check_in", loggedAt: iso(5, 20, 14) },
   { businessName: "The Anchor", stage: "present", whatNext: "send_proposal", loggedAt: iso(5, 21, 9) },
   { businessName: "Morris Laing Law", stage: "uncover", whatNext: "send_proposal", loggedAt: iso(5, 22, 10) },
 
@@ -289,53 +285,118 @@ const MAY: CallDef[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// June 2026 — Crushed it (~$14,400 of $12k goal, goal reached early)
+// The Anchor and Morris Laing Law close out deals that were pending in May.
+// ---------------------------------------------------------------------------
+
+const JUN: CallDef[] = [
+  // Won deals
+  { businessName: "Wichita Federal Credit Union", stage: "close", whatNext: "send_contract", outcome: "yes", budget: 4_800, termValue: 1, termUnit: "months", loggedAt: iso(6, 2, 10) },
+  { businessName: "Towne East Square", stage: "close", whatNext: "send_contract", outcome: "yes", budget: 3_600, termValue: 1, termUnit: "months", loggedAt: iso(6, 9, 11) },
+  { businessName: "The Anchor", stage: "close", whatNext: "send_contract", outcome: "yes", budget: 3_600, termValue: 1, termUnit: "months", loggedAt: iso(6, 16, 14) },
+  { businessName: "Morris Laing Law", stage: "close", whatNext: "send_contract", outcome: "yes", budget: 2_400, termValue: 1, termUnit: "months", loggedAt: iso(6, 23, 10) },
+
+  // Pipeline — open at end of June, carrying into July
+  { businessName: "Super Car Guys", stage: "present", whatNext: "send_proposal", outcome: "pending", budget: 3_600, termValue: 2, termUnit: "months", confidence: "sure", loggedAt: iso(6, 24, 9) },
+  { businessName: "Spirit AeroSystems", stage: "present", whatNext: "followup_call", outcome: "pending", budget: 4_200, termValue: 2, termUnit: "months", confidence: "expect", loggedAt: iso(6, 25, 14) },
+  { businessName: "Cessna Aircraft", stage: "uncover", whatNext: "send_proposal", outcome: "pending", budget: 6_000, termValue: 3, termUnit: "months", confidence: "hope", loggedAt: iso(6, 26, 11) },
+
+  // Activity — Week 1 (Jun 1–5)
+  { businessName: "Bradley Fair Shopping Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 1, 9) },
+  { businessName: "Wesley Medical Center", stage: "present", whatNext: "send_proposal", budget: 3_600, termValue: 2, termUnit: "months", confidence: "expect", loggedAt: iso(6, 1, 14) },
+  { businessName: "Siena Steakhouse", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 2, 14) },
+  { businessName: "Fahnestock HVAC", stage: "present", whatNext: "send_proposal", budget: 4_800, termValue: 3, termUnit: "months", confidence: "sure", loggedAt: iso(6, 3, 9) },
+  { businessName: "Doo-Dah Diner", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 3, 14) },
+  { businessName: "American Services", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 4, 9) },
+  { businessName: "Eck Services", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 4, 14) },
+  { businessName: "Kansas Heart Hospital", stage: "service", whatNext: "check_in", loggedAt: iso(6, 5, 10) },
+
+  // Activity — Week 2 (Jun 8–12)
+  { businessName: "INTRUST Bank", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 8, 9) },
+  { businessName: "Don Hattan Chevrolet", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 8, 14) },
+  { businessName: "Davis-Moore Auto Group", stage: "uncover", whatNext: "send_proposal", budget: 3_600, termValue: 2, termUnit: "months", confidence: "hope", loggedAt: iso(6, 9, 14) },
+  { businessName: "GraceMed Health Clinic", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 10, 9) },
+  { businessName: "Martin Pringle Law", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 10, 14) },
+  { businessName: "Meritrust Credit Union", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 11, 9) },
+  { businessName: "Pizza Hut Corporate", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 11, 14) },
+  { businessName: "Donovan Auto & Truck Center", stage: "service", whatNext: "check_in", loggedAt: iso(6, 12, 10) },
+
+  // Activity — Week 3 (Jun 15–19, Juneteenth the 19th)
+  { businessName: "Hunter Health Clinic", stage: "service", whatNext: "check_in", loggedAt: iso(6, 15, 9) },
+  { businessName: "Skyward Credit Union", stage: "service", whatNext: "check_in", loggedAt: iso(6, 15, 14) },
+  { businessName: "Bowers Plumbing", stage: "uncover", whatNext: "send_proposal", budget: 2_400, termValue: 1, termUnit: "months", confidence: "expect", loggedAt: iso(6, 16, 9) },
+  { businessName: "Spirit AeroSystems", stage: "uncover", whatNext: "followup_call", loggedAt: iso(6, 17, 9) },
+  { businessName: "Cessna Aircraft", stage: "uncover", whatNext: "followup_call", loggedAt: iso(6, 18, 14) },
+
+  // Activity — Week 4 (Jun 22–26)
+  { businessName: "Super Car Guys", stage: "uncover", whatNext: "followup_call", loggedAt: iso(6, 22, 9) },
+  { businessName: "Bradley Fair Shopping Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 22, 14) },
+
+  // Activity — Week 5 (Jun 29–30)
+  { businessName: "Don Hattan Chevrolet", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 29, 9) },
+  { businessName: "INTRUST Bank", stage: "approach", whatNext: "followup_call", loggedAt: iso(6, 30, 9) },
+];
+
+// ---------------------------------------------------------------------------
+// July 2026 (through the 6th) — month just getting started
+// A handful of pipeline-building touches, including two logged this morning,
+// so the app feels "lived in" the moment a beta tester signs in today.
+// ---------------------------------------------------------------------------
+
+const JUL: CallDef[] = [
+  { businessName: "GraceMed Health Clinic", stage: "uncover", whatNext: "send_proposal", budget: 1_800, termValue: 1, termUnit: "months", confidence: "hope", loggedAt: iso(7, 1, 10) },
+  { businessName: "Davis-Moore Auto Group", stage: "present", whatNext: "send_proposal", budget: 3_600, termValue: 2, termUnit: "months", confidence: "expect", loggedAt: iso(7, 2, 14) },
+  { businessName: "Bowers Plumbing", stage: "present", whatNext: "send_proposal", budget: 2_400, termValue: 1, termUnit: "months", confidence: "sure", loggedAt: iso(7, 3, 9) },
+  { businessName: "Wesley Medical Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(7, 6, 9) },
+  { businessName: "Bradley Fair Shopping Center", stage: "approach", whatNext: "followup_call", loggedAt: iso(7, 6, 11) },
+];
+
+// ---------------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------------
 
 async function run() {
-  console.log("Wiping existing store...");
-  await blob.wipe();
+  // Resolve (or create) the shared demo rep in the login index, keeping the
+  // name + PIN stable across re-runs of this script.
+  const index: RepsIndex = (await blob.read<RepsIndex>(paths.repsIndex)) ?? { reps: [] };
+  const nameLower = REP_NAME.toLowerCase();
+  let rep = index.reps.find((r) => r.name.toLowerCase() === nameLower);
 
-  const allCalls = [...JAN, ...FEB, ...MAR, ...APR, ...MAY];
-  console.log(`Building store from ${allCalls.length} call logs...`);
-
-  const built: Store = emptyStore();
-
-  built.reps.push({ id: REP_ID as string, name: REP_NAME as string });
-  built.repGoals.push({ repId: REP_ID as string, ...GOALS });
-
-  for (const call of allCalls) {
-    const nameLower = call.businessName.toLowerCase();
-    let business = built.businesses.find((b) => b.name.toLowerCase() === nameLower);
-    if (!business) {
-      business = {
-        id: crypto.randomUUID(),
-        repId: REP_ID as string,
-        name: call.businessName,
-        createdAt: call.loggedAt,
-      };
-      built.businesses.push(business);
-    }
-
-    const callLog: Store["callLogs"][number] = {
-      id: crypto.randomUUID(),
-      repId: REP_ID as string,
-      businessId: business.id,
-      stage: call.stage,
-      whatNext: call.whatNext,
-      loggedAt: call.loggedAt,
-    };
-    if (call.outcome !== undefined) callLog.outcome = call.outcome;
-    if (call.budget !== undefined) callLog.budget = call.budget;
-    if (call.termValue !== undefined) callLog.termValue = call.termValue;
-    if (call.termUnit !== undefined) callLog.termUnit = call.termUnit;
-    if (call.confidence !== undefined) callLog.confidence = call.confidence;
-
-    built.callLogs.push(callLog);
+  if (!rep) {
+    rep = { id: crypto.randomUUID(), name: REP_NAME, pin: REP_PIN };
+    index.reps.push(rep);
+    await blob.write(paths.repsIndex, index);
+  } else if (rep.pin !== REP_PIN) {
+    rep.pin = REP_PIN;
+    await blob.write(paths.repsIndex, index);
   }
 
-  await blob.write(paths.store, built);
-  console.log("Done.");
+  console.log(`Resetting store for "${rep.name}" (${rep.id})...`);
+  await blob.write(paths.repStore(rep.id), emptyRepStore());
+
+  await Mutations.setRepGoal.execute({ repId: rep.id, ...GOALS });
+
+  const allCalls = [...JAN, ...FEB, ...MAR, ...APR, ...MAY, ...JUN, ...JUL];
+  console.log(`Logging ${allCalls.length} calls...`);
+
+  for (const call of allCalls) {
+    await Mutations.logCall.execute({
+      repId: rep.id,
+      businessName: call.businessName,
+      stage: call.stage,
+      whatNext: call.whatNext,
+      budget: call.budget,
+      termValue: call.termValue,
+      termUnit: call.termUnit,
+      confidence: call.confidence,
+      outcome: call.outcome,
+      loggedAt: call.loggedAt,
+    });
+  }
+
+  const businessCount = new Set(allCalls.map((c) => c.businessName.toLowerCase())).size;
+  console.log(`Done. ${businessCount} businesses, ${allCalls.length} call logs.`);
+  console.log(`Sign in with name "${rep.name}" and PIN "${rep.pin}".`);
 }
 
 run().catch((err) => {

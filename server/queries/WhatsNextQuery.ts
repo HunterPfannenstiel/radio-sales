@@ -1,6 +1,6 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
-import { type Store } from "@/lib/blob/schema";
+import { type RepStore, emptyRepStore } from "@/lib/blob/schema";
 import { NEXT_STEPS } from "@/lib/types";
 
 export type WhatsNextBusinessDTO = {
@@ -19,20 +19,14 @@ const NEXT_STEP_LABELS = Object.fromEntries(NEXT_STEPS.map((s) => [s.value, s.la
 
 export class BlobWhatsNextQuery implements IWhatsNextQuery {
   async execute(repId: string): Promise<WhatsNextBusinessDTO[]> {
-    const store = (await blob.read<Store>(paths.store)) ?? {
-      reps: [],
-      businesses: [],
-      callLogs: [],
-    };
-
-    const repBusinesses = store.businesses.filter((b) => b.repId === repId);
+    const store = (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
     const results: WhatsNextBusinessDTO[] = [];
 
-    for (const business of repBusinesses) {
+    for (const business of store.businesses) {
       // Find all call logs for this business, sorted newest first
       const businessLogs = store.callLogs
-        .filter((c) => c.repId === repId && c.businessId === business.id)
+        .filter((c) => c.businessId === business.id)
         .sort(
           (a, b) =>
             new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()

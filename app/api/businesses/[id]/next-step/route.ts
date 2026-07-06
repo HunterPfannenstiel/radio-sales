@@ -2,6 +2,7 @@ import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { Mutations } from "@/server/mutations";
 import { Roles } from "@/server/roles/Roles";
+import { getSessionRepId } from "@/lib/session";
 
 const updateNextStepBodySchema = z.object({
   nextStep: z.string().min(1),
@@ -11,12 +12,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const repId = process.env.CURRENT_REP_ID;
+  const repId = await getSessionRepId();
   if (!repId) {
-    return new Response(
-      JSON.stringify({ error: "CURRENT_REP_ID is not configured" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
   }
 
   if (!Roles.canLogCall(repId)) {
