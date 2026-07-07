@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
     weekYear,
     weekNumber,
     timezone,
+    now: new Date(),
   });
 
   return Response.json(result);
