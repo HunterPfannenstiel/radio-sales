@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:unit": "vitest run .unit.test.ts",
     "test:integration": "vitest run .integration.test.ts --passWithNoTests",
+    "test:e2e": "playwright test",
+    "test:e2e:watch": "PW_SLOW_MO=400 playwright test --headed --workers=1",
     "script": "USE_LOCAL_BLOB=true npx tsx --env-file=.env.local",
     "script:remote": "USE_LOCAL_BLOB=false npx tsx --env-file=.env.local",
     "mvp-sync": "git fetch mvp && git ls-tree -r --name-only mvp/main | grep -E '^prompts/|.+/(CLAUDE|AGENTS)\\.md$' | xargs git checkout mvp/main -- && git add -u && git commit -m 'Pulled mvp repo' && git push origin main"
@@ -41,6 +43,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
