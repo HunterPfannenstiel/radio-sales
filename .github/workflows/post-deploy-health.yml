@@ -10,6 +10,8 @@ jobs:
       - name: Check health endpoint
         run: |
           URL="${{ github.event.deployment_status.target_url }}/api/health"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --retry 5 --retry-delay 3 --retry-connrefused "$URL")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --retry 5 --retry-delay 3 --retry-connrefused \
+            -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}" \
+            "$URL")
           echo "Checked $URL -> $STATUS"
           [ "$STATUS" = "200" ] || exit 1
