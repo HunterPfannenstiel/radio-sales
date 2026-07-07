@@ -88,4 +88,11 @@ Vercel does not treat `integration` differently from any other non-production br
 
 ### Stable URL
 
-The one practical difference we impose: `integration` is assigned a fixed, memorable domain (e.g. `integration.yourapp.com`) via Vercel's Domains settings, bound specifically to that branch. This means the URL always resolves to the latest `integration` deployment, so anyone reviewing it — teammates, stakeholders — has one link that's always current, rather than needing to track down a fresh, auto-generated preview URL every time new commits land. Feature branches are not given this treatment; their auto-generated preview URLs are sufficient since they're typically shared short-term, per PR.
+The one practical difference we impose: `integration` gets a persistent, stable URL rather than a one-off preview URL. Since this project doesn't have a custom domain attached, we're using Vercel's automatically-generated per-branch alias (`<project>-git-<branch>-<scope>.vercel.app`) rather than manually assigning a domain — it requires no setup and always resolves to the latest `integration` deployment. Feature branches are not given this treatment; their auto-generated per-commit preview URLs are sufficient since they're typically shared short-term, per PR. If a custom domain is added to the project later, `integration` should be moved onto a proper subdomain (e.g. `integration.yourapp.com`) via Vercel's Domains settings instead.
+
+### Live URLs
+
+| Environment | URL |
+|---|---|
+| Production | https://radio-sales.vercel.app/ |
+| Integration | https://radio-sales-git-integration-ohshews-projects.vercel.app/ |
