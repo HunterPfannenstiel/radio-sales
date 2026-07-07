@@ -8,18 +8,26 @@ const supabase = createClient(
 
 const BUCKET = process.env.SUPABASE_BUCKET!;
 
+function isNotFoundError(error: { statusCode?: string }): boolean {
+  return error.statusCode === "404";
+}
+
 export class SupabaseBlobStore implements IBlobStore {
   async read<T>(pathname: string): Promise<T | null> {
     const { data, error } = await supabase.storage.from(BUCKET).download(pathname);
-    if (error) return null;
+    if (error) {
+      if (isNotFoundError(error)) return null;
+      throw error;
+    }
     return JSON.parse(await data.text()) as T;
   }
 
   async write(pathname: string, data: unknown): Promise<void> {
-    await supabase.storage.from(BUCKET).upload(pathname, JSON.stringify(data), {
+    const { error } = await supabase.storage.from(BUCKET).upload(pathname, JSON.stringify(data), {
       upsert: true,
       contentType: "application/json",
     });
+    if (error) throw error;
   }
 
   async delete(pathname: string): Promise<void> {

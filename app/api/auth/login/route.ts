@@ -21,7 +21,13 @@ export async function POST(request: NextRequest) {
     return new Response(JSON.stringify({ error: "Invalid request body", details: parsed.error.flatten() }), { status: 400, headers: { "Content-Type": "application/json" } });
   }
 
-  const result = await Mutations.login.execute(parsed.data);
+  let result;
+  try {
+    result = await Mutations.login.execute(parsed.data);
+  } catch {
+    return new Response(JSON.stringify({ error: "Login failed" }), { status: 500, headers: { "Content-Type": "application/json" } });
+  }
+
   if (!result.ok) {
     return new Response(JSON.stringify({ error: "Incorrect PIN" }), { status: 401, headers: { "Content-Type": "application/json" } });
   }
