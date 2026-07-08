@@ -3,11 +3,27 @@ import { paths } from "@/lib/blob/paths";
 import { type RepStore, type CallOutcome, emptyRepStore } from "@/lib/blob/schema";
 import { NEXT_STEPS } from "@/lib/types";
 
+// The interaction-history timeline (components/InteractionHistory.tsx) renders a
+// display vocabulary — sold / not_sold / follow_up — not the raw stored outcome
+// (yes / no / pending). Map at the query boundary, the same place this file
+// already maps `whatNext` → a human label, so the DTO is the presentation
+// contract the UI consumes directly.
+export const INTERACTION_OUTCOMES = ["sold", "not_sold", "follow_up"] as const;
+export type InteractionOutcome = typeof INTERACTION_OUTCOMES[number];
+
+// A call logged without a recorded outcome ("no outcome yet") collapses to the
+// neutral follow_up state, which the timeline renders with no won/lost indicator.
+const OUTCOME_DISPLAY: Record<CallOutcome, InteractionOutcome> = {
+  yes: "sold",
+  no: "not_sold",
+  pending: "follow_up",
+};
+
 export type InteractionHistoryEntryDTO = {
   id: string;
   date: string;
   stage: string;
-  outcome?: CallOutcome;
+  outcome: InteractionOutcome;
   ask?: { amount: number; term: string; confidence: string };
   nextStep: string;
 };
@@ -40,7 +56,7 @@ export class BlobBusinessInteractionHistoryQuery
         id: log.id,
         date: log.loggedAt,
         stage: log.stage,
-        outcome: log.outcome,
+        outcome: log.outcome ? OUTCOME_DISPLAY[log.outcome] : "follow_up",
         nextStep: NEXT_STEP_LABELS[log.whatNext] ?? log.whatNext,
       };
 

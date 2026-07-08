@@ -1,6 +1,6 @@
 import React from "react"
 
-export function LoginBrand() {
+export function AuthBrand() {
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-2.5">

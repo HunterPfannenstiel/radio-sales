@@ -4,12 +4,12 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useRequest } from "@/hooks/useRequest"
 
-export function useLoginForm() {
+export function useSigninForm() {
   const router = useRouter()
   const [name, setName] = useState("")
   const [pin, setPin] = useState("")
   const [nameOrPinChanged, setNameOrPinChanged] = useState(false)
-  const { execute, loading, error } = useRequest<{ repId: string; name: string; isNewRep: boolean }>()
+  const { execute, loading, error } = useRequest<{ repId: string; name: string }>()
 
   const canSubmit = name.trim().length > 0 && pin.length === 4 && !loading
 
@@ -27,14 +27,18 @@ export function useLoginForm() {
     if (!canSubmit) return
     setNameOrPinChanged(false)
 
-    const result = await execute("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), pin }),
-    })
+    const result = await execute(
+      "/api/auth/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), pin }),
+      },
+      { toastOnError: false }
+    )
 
     if (result) {
-      router.push(result.isNewRep ? "/goals" : "/")
+      router.push("/")
     }
   }
 
@@ -42,7 +46,7 @@ export function useLoginForm() {
     name,
     pin,
     loading,
-    error: nameOrPinChanged ? "" : error ?? "",
+    showError: nameOrPinChanged ? false : Boolean(error),
     canSubmit,
     handleNameChange,
     handlePinChange,
