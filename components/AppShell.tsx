@@ -12,10 +12,10 @@ import { QuickLogContainer } from "@/components/QuickLogContainer"
 
 function ShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isLogin = pathname === "/login"
+  const isAuthPage = pathname === "/signin" || pathname === "/signup"
   const isManager = pathname.startsWith("/manager")
 
-  if (isLogin) {
+  if (isAuthPage) {
     return <>{children}</>
   }
 
