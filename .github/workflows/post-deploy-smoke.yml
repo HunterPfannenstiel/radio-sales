@@ -3,12 +3,36 @@ name: Post-Deploy Smoke Test
 on: deployment_status
 
 jobs:
-  e2e-smoke:
-    if: |
-      github.event.deployment_status.state == 'success' &&
-      contains(fromJSON('["main", "integration"]'), github.event.deployment.ref)
+  resolve:
+    if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
-    environment: ${{ github.event.deployment.ref == 'main' && 'production' || 'integration' }}
+    outputs:
+      url: ${{ steps.url.outputs.url }}
+      environment: ${{ steps.url.outputs.environment }}
+    steps:
+      - name: Resolve stable URL for branch
+        id: url
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          MAIN_SHA=$(gh api repos/${{ github.repository }}/branches/main --jq .commit.sha)
+          INTEGRATION_SHA=$(gh api repos/${{ github.repository }}/branches/integration --jq .commit.sha)
+          if [ "$SHA" = "$MAIN_SHA" ]; then
+            echo "url=${{ vars.PRODUCTION_URL }}" >> "$GITHUB_OUTPUT"
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+          elif [ "$SHA" = "$INTEGRATION_SHA" ]; then
+            echo "url=${{ vars.INTEGRATION_URL }}" >> "$GITHUB_OUTPUT"
+            echo "environment=integration" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=" >> "$GITHUB_OUTPUT"
+          fi
+
+  e2e-smoke:
+    needs: resolve
+    if: needs.resolve.outputs.url != ''
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -19,6 +43,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run test:e2e:smoke
         env:
-          BASE_URL: ${{ github.event.deployment.ref == 'main' && vars.PRODUCTION_URL || vars.INTEGRATION_URL }}
+          BASE_URL: ${{ needs.resolve.outputs.url }}
           CANARY_LOGIN_NAME: ${{ secrets.CANARY_LOGIN_NAME }}
           CANARY_LOGIN_PIN: ${{ secrets.CANARY_LOGIN_PIN }}
