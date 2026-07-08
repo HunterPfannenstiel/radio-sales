@@ -9,6 +9,7 @@ import { useQuickLog } from "@/components/QuickLogContext"
 import { DateNavigator } from "@/components/DateNavigator/DateNavigator"
 import { PageHeader } from "@/components/PageHeader"
 import { type PaceStatus, type ActivityPaceStatus } from "@/server/queries/DashboardQuery"
+import { CLOSING_RATIO } from "@/lib/goalMath"
 
 // ---------------------------------------------------------------------------
 // Dashboard data type (mirrors DashboardDTO from server/queries/DashboardQuery)
@@ -28,6 +29,7 @@ type DashboardData = {
   asks: { count: number; target: number; paceStatus: ActivityPaceStatus }
   daysRemainingInWeek: number
   weekNumber: number
+  weeklyCloseTarget: number
   weeklyPresentTarget: number
 }
 
@@ -295,6 +297,7 @@ interface ActivityCardProps {
   daysRemaining: number
   periodState: PeriodState
   refreshing?: boolean
+  weeklyCloseTarget?: number
   weeklyPresentTarget?: number
 }
 
@@ -306,6 +309,7 @@ function ActivityCard({
   daysRemaining,
   periodState,
   refreshing = false,
+  weeklyCloseTarget,
   weeklyPresentTarget,
 }: ActivityCardProps) {
   const label = type === "calls" ? "Calls" : "Asks"
@@ -442,23 +446,45 @@ function ActivityCard({
           {footerText}
         </span>
 
-        {type === "asks" && periodState === "current" && weeklyPresentTarget != null && weeklyPresentTarget > 0 && (
-          <span
-            style={{
-              fontSize: "var(--font-size-small)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            Present{" "}
-            <span
-              className="font-bold"
-              style={{ color: "var(--color-text-primary)" }}
-            >
-              {formatCurrency(weeklyPresentTarget)}/wk
-            </span>{" "}
-            to hit your goal
-          </span>
-        )}
+        {type === "asks" &&
+          periodState === "current" &&
+          weeklyCloseTarget != null &&
+          weeklyCloseTarget > 0 &&
+          weeklyPresentTarget != null &&
+          weeklyPresentTarget > 0 && (
+            <>
+              <span
+                style={{
+                  fontSize: "var(--font-size-small)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                Close{" "}
+                <span
+                  className="font-bold"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {formatCurrency(weeklyCloseTarget)}
+                </span>
+                /wk to hit your goal
+              </span>
+              <span
+                style={{
+                  fontSize: "var(--font-size-small)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                Present{" "}
+                <span
+                  className="font-bold"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {formatCurrency(weeklyPresentTarget)}
+                </span>
+                /wk to hit your goal (assuming a {Math.round(CLOSING_RATIO * 100)}% closing ratio)
+              </span>
+            </>
+          )}
       </div>
     </div>
   )
@@ -473,6 +499,7 @@ interface ActivityPaceSectionProps {
   asks: DashboardData["asks"]
   daysRemainingInWeek: number
   periodState: PeriodState
+  weeklyCloseTarget?: number
   weeklyPresentTarget?: number
   refreshing?: boolean
 }
@@ -482,6 +509,7 @@ function ActivityPaceSection({
   asks,
   daysRemainingInWeek,
   periodState,
+  weeklyCloseTarget,
   weeklyPresentTarget,
   refreshing = false,
 }: ActivityPaceSectionProps) {
@@ -503,6 +531,7 @@ function ActivityPaceSection({
         paceStatus={asks.paceStatus}
         daysRemaining={daysRemainingInWeek}
         periodState={periodState}
+        weeklyCloseTarget={weeklyCloseTarget}
         weeklyPresentTarget={weeklyPresentTarget}
         refreshing={refreshing}
       />
@@ -565,6 +594,7 @@ export default function DashboardPage() {
             asks={data.asks}
             daysRemainingInWeek={data.daysRemainingInWeek}
             periodState={weekState}
+            weeklyCloseTarget={data.weeklyCloseTarget}
             weeklyPresentTarget={data.weeklyPresentTarget}
             refreshing={refreshing}
           />

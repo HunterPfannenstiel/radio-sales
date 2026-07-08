@@ -1,6 +1,7 @@
 import { blob } from "@/lib/blob";
 import { paths } from "@/lib/blob/paths";
 import { type RepStore, emptyRepStore } from "@/lib/blob/schema";
+import { computeStaticWeeklyTargets } from "@/lib/goalMath";
 
 export type DashboardQueryParams = {
   repId: string;
@@ -38,6 +39,7 @@ export type DashboardDTO = {
   asks: ActivityCountDTO;
   daysRemainingInWeek: number;
   weekNumber: number;
+  weeklyCloseTarget: number;
   weeklyPresentTarget: number;
 };
 
@@ -252,34 +254,6 @@ export function computeActivityPace(
   };
 }
 
-/** Weekly $ a rep must present to close the remaining gap by month end. */
-export function computeWeeklyPresentTarget(params: {
-  goalAmount: number;
-  soldAmount: number;
-  year: number;
-  month: number;
-  now: Date;
-  timezone: string;
-}): number {
-  const { goalAmount, soldAmount, year, month, now, timezone } = params;
-
-  const todayUTC = localTodayUTC(now, timezone);
-  const monthEnd = new Date(Date.UTC(year, month + 1, 0));
-  const isPastMonth = todayUTC > monthEnd;
-  const gap = goalAmount - soldAmount;
-
-  if (gap > 0 && goalAmount > 0 && !isPastMonth) {
-    const daysInMonth = monthEnd.getUTCDate();
-    const remainingDays =
-      todayUTC.getUTCFullYear() === year && todayUTC.getUTCMonth() === month
-        ? Math.max(1, daysInMonth - todayUTC.getUTCDate())
-        : daysInMonth;
-    const weeksLeft = Math.max(1, remainingDays / 5);
-    return Math.ceil(gap / weeksLeft);
-  }
-  return 0;
-}
-
 // ---------------------------------------------------------------------------
 // Implementation — reads the rep store, then delegates to the pure functions.
 // ---------------------------------------------------------------------------
@@ -305,13 +279,8 @@ export class BlobDashboardQuery implements IDashboardQuery {
       now,
       timezone,
     });
-    const weeklyPresentTarget = computeWeeklyPresentTarget({
-      goalAmount,
-      soldAmount: moneyPace.soldAmount,
-      year,
-      month,
-      now,
-      timezone,
+    const { weeklyCloseTarget, weeklyPresentTarget } = computeStaticWeeklyTargets({
+      monthlyGoalAmount: goalAmount,
     });
 
     return {
@@ -320,6 +289,7 @@ export class BlobDashboardQuery implements IDashboardQuery {
       asks: activity.asks,
       daysRemainingInWeek: activity.daysRemainingInWeek,
       weekNumber,
+      weeklyCloseTarget,
       weeklyPresentTarget,
     };
   }

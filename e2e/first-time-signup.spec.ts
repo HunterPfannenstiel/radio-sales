@@ -51,7 +51,7 @@ test("sign-up is the default landing page; sign-in only ever reaches existing ac
     await page.getByLabel("Name").fill(repName);
     await page.getByLabel("PIN").fill(PIN);
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.locator('[data-slot="alert"]')).toBeVisible();
     await expect(page).toHaveURL(/\/signin$/);
   });
 
@@ -94,7 +94,7 @@ test("sign-up is the default landing page; sign-in only ever reaches existing ac
     await page.getByLabel("Name").fill(repName);
     await page.getByLabel("PIN").fill(WRONG_PIN);
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.locator('[data-slot="alert"]')).toBeVisible();
     await expect(page).toHaveURL(/\/signin$/);
   });
 
@@ -105,7 +105,7 @@ test("sign-up is the default landing page; sign-in only ever reaches existing ac
     await page.getByLabel("Name").fill(repName);
     await page.getByLabel("PIN").fill(PIN);
     await page.getByRole("button", { name: "Create account" }).click();
-    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.locator('[data-slot="alert"]')).toBeVisible();
     await expect(page).toHaveURL(/\/signup$/);
   });
 
