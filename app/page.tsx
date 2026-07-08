@@ -223,6 +223,7 @@ function MoneyPaceCard({
           {!goalReached && (
             <div className="flex flex-col gap-0.5 items-end">
               <span
+                data-testid="money-pace-gap-value"
                 className="font-bold leading-none"
                 style={{ fontSize: "var(--font-size-h1)", color: "var(--color-text-primary)" }}
               >
@@ -263,6 +264,7 @@ function MoneyPaceCard({
                   {label}
                 </span>
                 <span
+                  data-testid={`money-pace-${label.toLowerCase()}-value`}
                   className="font-bold"
                   style={{
                     fontSize: "var(--font-size-body)",
@@ -364,6 +366,7 @@ function ActivityCard({
 
   return (
     <div
+      data-testid={`${type}-card`}
       className="flex-1 rounded-[var(--radius-card)] border p-5 flex flex-col gap-4"
       style={{
         background: "var(--color-surface-card)",

@@ -1,0 +1,22 @@
+name: Post-Deploy Production Smoke Test
+
+on: deployment_status
+
+jobs:
+  e2e-smoke-production:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm run test:e2e:smoke
+        env:
+          BASE_URL: ${{ github.event.deployment_status.target_url }}
+          CANARY_LOGIN_NAME: ${{ secrets.CANARY_LOGIN_NAME }}
+          CANARY_LOGIN_PIN: ${{ secrets.CANARY_LOGIN_PIN }}

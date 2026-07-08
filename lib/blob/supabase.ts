@@ -1,20 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 import type { IBlobStore } from "./IBlobStore.ts";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!
-);
-
-const BUCKET = process.env.SUPABASE_BUCKET!;
-
 function isNotFoundError(error: { statusCode?: string }): boolean {
   return error.statusCode === "404";
 }
 
 export class SupabaseBlobStore implements IBlobStore {
+  private supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!
+  );
+  private bucket = process.env.SUPABASE_BUCKET!;
+
   async read<T>(pathname: string): Promise<T | null> {
-    const { data, error } = await supabase.storage.from(BUCKET).download(pathname);
+    const { data, error } = await this.supabase.storage.from(this.bucket).download(pathname);
     if (error) {
       if (isNotFoundError(error)) return null;
       throw error;
@@ -23,7 +22,7 @@ export class SupabaseBlobStore implements IBlobStore {
   }
 
   async write(pathname: string, data: unknown): Promise<void> {
-    const { error } = await supabase.storage.from(BUCKET).upload(pathname, JSON.stringify(data), {
+    const { error } = await this.supabase.storage.from(this.bucket).upload(pathname, JSON.stringify(data), {
       upsert: true,
       contentType: "application/json",
     });
@@ -31,7 +30,7 @@ export class SupabaseBlobStore implements IBlobStore {
   }
 
   async delete(pathname: string): Promise<void> {
-    await supabase.storage.from(BUCKET).remove([pathname]);
+    await this.supabase.storage.from(this.bucket).remove([pathname]);
   }
 
   async wipe(): Promise<void> {
@@ -39,12 +38,12 @@ export class SupabaseBlobStore implements IBlobStore {
   }
 
   private async wipeFolder(folder: string): Promise<void> {
-    const { data } = await supabase.storage.from(BUCKET).list(folder);
+    const { data } = await this.supabase.storage.from(this.bucket).list(folder);
     if (!data) return;
     const prefix = folder ? `${folder}/` : "";
     const files = data.filter((i) => i.id !== null).map((i) => `${prefix}${i.name}`);
     const folders = data.filter((i) => i.id === null).map((i) => `${prefix}${i.name}`);
-    if (files.length > 0) await supabase.storage.from(BUCKET).remove(files);
+    if (files.length > 0) await this.supabase.storage.from(this.bucket).remove(files);
     for (const sub of folders) await this.wipeFolder(sub);
   }
 }
