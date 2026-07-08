@@ -4,12 +4,14 @@ on: deployment_status
 
 jobs:
   health-check:
-    if: github.event.deployment_status.state == 'success'
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      contains(fromJSON('["main", "integration"]'), github.event.deployment.ref)
     runs-on: ubuntu-latest
     steps:
       - name: Check health endpoint
         run: |
-          URL="${{ github.event.deployment_status.target_url }}/api/health"
+          URL="${{ github.event.deployment.ref == 'main' && vars.PRODUCTION_URL || vars.INTEGRATION_URL }}/api/health"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" --retry 5 --retry-delay 3 --retry-connrefused \
             -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}" \
             "$URL")

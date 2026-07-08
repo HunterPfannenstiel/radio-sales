@@ -1,16 +1,16 @@
 "use client"
 
-import { LoginBrand } from "./LoginBrand"
-import { LoginForm } from "./LoginForm"
+import { AuthBrand } from "@/components/auth/AuthBrand"
+import { SigninForm } from "./SigninForm"
 
-export function LoginScreen() {
+export function SigninScreen() {
   return (
     <div
       className="flex min-h-svh flex-col items-center justify-center gap-8 p-4"
       style={{ background: "var(--color-surface-page)" }}
     >
-      <LoginBrand />
-      <LoginForm />
+      <AuthBrand />
+      <SigninForm />
     </div>
   )
 }

@@ -21,7 +21,7 @@ export function IdentityBadge({ className }: { className?: string }) {
 
   async function handleLogout() {
     await logout("/api/auth/logout", { method: "POST" })
-    router.push("/login")
+    router.push("/signin")
   }
 
   if (!currentRep) return null
