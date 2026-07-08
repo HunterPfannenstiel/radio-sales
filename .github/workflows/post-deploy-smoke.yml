@@ -1,12 +1,14 @@
-name: Post-Deploy Production Smoke Test
+name: Post-Deploy Smoke Test
 
 on: deployment_status
 
 jobs:
-  e2e-smoke-production:
-    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production'
+  e2e-smoke:
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      contains(fromJSON('["main", "integration"]'), github.event.deployment.ref)
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ github.event.deployment.ref == 'main' && 'production' || 'integration' }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -17,6 +19,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run test:e2e:smoke
         env:
-          BASE_URL: ${{ github.event.deployment_status.target_url }}
+          BASE_URL: ${{ github.event.deployment.ref == 'main' && vars.PRODUCTION_URL || vars.INTEGRATION_URL }}
           CANARY_LOGIN_NAME: ${{ secrets.CANARY_LOGIN_NAME }}
           CANARY_LOGIN_PIN: ${{ secrets.CANARY_LOGIN_PIN }}
