@@ -48,7 +48,7 @@ const STAGE_DOT_COLORS: Record<string, string> = {
 }
 
 /** Format date per spec: "Today" / "Yesterday" / "Jun 3" / "Jun 3, 2024" */
-function formatLastContact(isoString: string | null, today: Date): string {
+export function formatLastContact(isoString: string | null, today: Date): string {
   if (!isoString) return "Never contacted"
   const date = new Date(isoString)
   const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -150,6 +150,7 @@ function WhatsNextCard({ account, today, onCardClick }: WhatsNextCardProps) {
 
   return (
     <div
+      data-testid="whats-next-card"
       className="rounded-[var(--radius-card)] border overflow-hidden"
       style={{
         background: "var(--color-surface-card)",
@@ -187,6 +188,7 @@ function WhatsNextCard({ account, today, onCardClick }: WhatsNextCardProps) {
 
           {/* Stage badge — display only */}
           <span
+            data-testid="whats-next-card-stage"
             className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 whitespace-nowrap border"
             style={{
               fontSize: "var(--font-size-small)",

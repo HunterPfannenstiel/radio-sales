@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import { Target, TrendingUp } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Spinner } from "@/components/ui/spinner"
+import { Badge } from "@/components/ui/badge"
 import { useFetch } from "@/hooks/useFetch"
 import { useQuickLog } from "@/components/QuickLogContext"
 import { DateNavigator } from "@/components/DateNavigator/DateNavigator"
@@ -108,6 +109,7 @@ interface MoneyPaceCardProps {
   soldPercent: number
   paceStatus: PaceStatus
   periodState: PeriodState
+  period: "week" | "month"
   refreshing?: boolean
 }
 
@@ -118,12 +120,12 @@ function MoneyPaceCard({
   soldPercent,
   paceStatus,
   periodState,
+  period,
   refreshing = false,
 }: MoneyPaceCardProps) {
   const statusColor = paceStatusToColor(paceStatus)
   const gap = goalAmount - soldAmount
   const goalReached = soldPercent >= 100
-  const showBadge = periodState === "current" || (periodState === "past" && paceStatus === "goal_reached")
 
   // Empty state — no goal set
   if (goalAmount === 0) {
@@ -155,27 +157,21 @@ function MoneyPaceCard({
     )
   }
 
-  const meterColor = periodState === "future"
-    ? "var(--color-border-strong)"
-    : goalReached
-      ? "var(--color-status-achieved)"
-      : periodState === "current"
-        ? statusColor
-        : "var(--color-border-strong)"
-  const heroColor = periodState === "future"
+  // Shell (recede this): card surface steps back for past periods. The
+  // meter always matches the hero number's color — no gray progress bars.
+  const paceColor = periodState === "future"
     ? "var(--color-text-secondary)"
     : goalReached
       ? "var(--color-status-achieved)"
-      : periodState === "current"
-        ? statusColor
-        : "var(--color-text-secondary)"
+      : statusColor
+  const periodLabel = period === "week" ? "Past Week" : "Past Month"
 
   return (
     <div
       className={`w-full rounded-[var(--radius-card)] p-5 flex flex-col gap-4${goalReached && periodState === "current" ? " goal-reached-pulse" : ""}`}
       style={{
-        background: "var(--color-surface-card)",
-        boxShadow: "0 0 0 1px var(--color-border-default)",
+        background: periodState === "past" ? "var(--color-surface-subtle)" : "var(--color-surface-card)",
+        boxShadow: `0 0 0 1px ${periodState === "past" ? "var(--color-border-subtle)" : "var(--color-border-default)"}`,
       }}
     >
       {/* Header */}
@@ -189,17 +185,21 @@ function MoneyPaceCard({
           </h3>
           {refreshing && <Spinner className="size-3.5" style={{ color: "var(--color-text-secondary)" }} />}
         </div>
-        {showBadge && (
-          <span
-            className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-            style={{
-              background: statusColor,
-              color: "var(--color-text-inverse)",
-              fontSize: "var(--font-size-small)",
-            }}
-          >
-            {PACE_STATUS_LABELS[paceStatus]}
-          </span>
+        {periodState === "past" ? (
+          <Badge variant="outline" className="shrink-0">{periodLabel}</Badge>
+        ) : (
+          periodState === "current" && (
+            <span
+              className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
+              style={{
+                background: statusColor,
+                color: "var(--color-text-inverse)",
+                fontSize: "var(--font-size-small)",
+              }}
+            >
+              {PACE_STATUS_LABELS[paceStatus]}
+            </span>
+          )
         )}
       </div>
 
@@ -212,7 +212,7 @@ function MoneyPaceCard({
           <div className="flex flex-col gap-0.5">
             <span
               className="font-bold leading-none"
-              style={{ fontSize: "var(--font-size-hero)", color: heroColor }}
+              style={{ fontSize: "var(--font-size-hero)", color: paceColor }}
             >
               {soldPercent}%
             </span>
@@ -241,10 +241,7 @@ function MoneyPaceCard({
         </div>
 
         {/* Progress bar */}
-        <Progress
-          value={Math.min(soldPercent, 100)}
-          indicatorStyle={{ background: meterColor }}
-        />
+        <Progress value={Math.min(soldPercent, 100)} color={paceColor} />
 
         {/* Supporting figures */}
         <div className="flex flex-col gap-2">
@@ -316,21 +313,12 @@ function ActivityCard({
   const statusColor = paceStatusToColor(paceStatus)
   const ratio = target > 0 ? Math.min(count / target, 1) : 0
   const goalReached = paceStatus === "goal_reached"
-  const showBadge = periodState === "current" || (periodState === "past" && goalReached)
-  const numberColor = periodState === "future"
+  // Number and meter always share one color — no gray progress bars.
+  const activityColor = periodState === "future"
     ? "var(--color-text-secondary)"
     : goalReached
       ? "var(--color-status-achieved)"
-      : periodState === "current"
-        ? statusColor
-        : "var(--color-text-secondary)"
-  const progressColor = periodState === "future"
-    ? "var(--color-border-strong)"
-    : goalReached
-      ? "var(--color-status-achieved)"
-      : periodState === "current"
-        ? statusColor
-        : "var(--color-border-strong)"
+      : statusColor
 
   // Empty state — no targets set
   if (target === 0) {
@@ -373,8 +361,8 @@ function ActivityCard({
       data-testid={`${type}-card`}
       className="flex-1 rounded-[var(--radius-card)] border p-5 flex flex-col gap-4"
       style={{
-        background: "var(--color-surface-card)",
-        borderColor: "var(--color-border-default)",
+        background: periodState === "past" ? "var(--color-surface-subtle)" : "var(--color-surface-card)",
+        borderColor: periodState === "past" ? "var(--color-border-subtle)" : "var(--color-border-default)",
       }}
     >
       {/* Header */}
@@ -388,28 +376,32 @@ function ActivityCard({
           </h3>
           {refreshing && <Spinner className="size-3.5" style={{ color: "var(--color-text-secondary)" }} />}
         </div>
-        {showBadge && (
-          periodState === "current" && notStarted ? (
-            <span
-              className="shrink-0"
-              style={{
-                fontSize: "var(--font-size-small)",
-                color: "var(--color-text-secondary)",
-              }}
-            >
-              Not started
-            </span>
-          ) : (
-            <span
-              className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-              style={{
-                background: statusColor,
-                color: "var(--color-text-inverse)",
-                fontSize: "var(--font-size-small)",
-              }}
-            >
-              {PACE_STATUS_LABELS[paceStatus]}
-            </span>
+        {periodState === "past" ? (
+          <Badge variant="outline" className="shrink-0">Past Week</Badge>
+        ) : (
+          periodState === "current" && (
+            notStarted ? (
+              <span
+                className="shrink-0"
+                style={{
+                  fontSize: "var(--font-size-small)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                Not started
+              </span>
+            ) : (
+              <span
+                className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
+                style={{
+                  background: statusColor,
+                  color: "var(--color-text-inverse)",
+                  fontSize: "var(--font-size-small)",
+                }}
+              >
+                {PACE_STATUS_LABELS[paceStatus]}
+              </span>
+            )
           )
         )}
       </div>
@@ -422,7 +414,7 @@ function ActivityCard({
         <div className="flex items-baseline gap-1">
           <span
             className="font-bold leading-none"
-            style={{ fontSize: "var(--font-size-h1)", color: numberColor }}
+            style={{ fontSize: "var(--font-size-h1)", color: activityColor }}
           >
             {count}
           </span>
@@ -437,14 +429,16 @@ function ActivityCard({
         </span>
 
         {/* Progress bar */}
-        <Progress value={ratio * 100} indicatorStyle={{ background: progressColor }} />
+        <Progress value={ratio * 100} color={activityColor} />
 
         {/* Footer */}
-        <span
-          style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)" }}
-        >
-          {footerText}
-        </span>
+        {periodState !== "past" && (
+          <span
+            style={{ fontSize: "var(--font-size-small)", color: "var(--color-text-secondary)" }}
+          >
+            {footerText}
+          </span>
+        )}
 
         {type === "asks" &&
           periodState === "current" &&
@@ -587,6 +581,7 @@ export default function DashboardPage() {
             soldPercent={data.moneyPace.soldPercent}
             paceStatus={data.moneyPace.paceStatus}
             periodState={monthState}
+            period="month"
             refreshing={refreshing}
           />
           <ActivityPaceSection

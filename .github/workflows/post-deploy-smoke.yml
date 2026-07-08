@@ -1,14 +1,67 @@
 name: Post-Deploy Smoke Test
 
-on: deployment_status
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to smoke-test
+        required: true
+        type: choice
+        options:
+          - production
+          - integration
 
 jobs:
-  e2e-smoke:
-    if: |
-      github.event.deployment_status.state == 'success' &&
-      contains(fromJSON('["main", "integration"]'), github.event.deployment.ref)
+  resolve:
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
-    environment: ${{ github.event.deployment.ref == 'main' && 'production' || 'integration' }}
+    outputs:
+      url: ${{ steps.url.outputs.url }}
+      environment: ${{ steps.url.outputs.environment }}
+    steps:
+      - name: Resolve stable URL for branch
+        id: url
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REF: ${{ github.event.deployment.ref }}
+          SHA: ${{ github.event.deployment.sha }}
+          DISPATCH_ENV: ${{ inputs.environment }}
+        run: |
+          # Manual runs (ad-hoc CLI/alias deploys) say explicitly what to check.
+          if [ -n "$DISPATCH_ENV" ]; then
+            REF="$DISPATCH_ENV"
+          fi
+
+          if [ "$REF" = "main" ] || [ "$REF" = "production" ]; then
+            echo "url=${{ vars.PRODUCTION_URL }}" >> "$GITHUB_OUTPUT"
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+            exit 0
+          elif [ "$REF" = "integration" ]; then
+            echo "url=${{ vars.INTEGRATION_URL }}" >> "$GITHUB_OUTPUT"
+            echo "environment=integration" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # ref wasn't a plain branch name (e.g. dashboard "Redeploy" sets ref to
+          # the commit SHA) — fall back to matching the SHA against branch tips.
+          MAIN_SHA=$(gh api repos/${{ github.repository }}/branches/main --jq .commit.sha)
+          INTEGRATION_SHA=$(gh api repos/${{ github.repository }}/branches/integration --jq .commit.sha)
+          if [ "$SHA" = "$MAIN_SHA" ]; then
+            echo "url=${{ vars.PRODUCTION_URL }}" >> "$GITHUB_OUTPUT"
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+          elif [ "$SHA" = "$INTEGRATION_SHA" ]; then
+            echo "url=${{ vars.INTEGRATION_URL }}" >> "$GITHUB_OUTPUT"
+            echo "environment=integration" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=" >> "$GITHUB_OUTPUT"
+          fi
+
+  e2e-smoke:
+    needs: resolve
+    if: needs.resolve.outputs.url != ''
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -19,6 +72,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run test:e2e:smoke
         env:
-          BASE_URL: ${{ github.event.deployment.ref == 'main' && vars.PRODUCTION_URL || vars.INTEGRATION_URL }}
+          BASE_URL: ${{ needs.resolve.outputs.url }}
           CANARY_LOGIN_NAME: ${{ secrets.CANARY_LOGIN_NAME }}
           CANARY_LOGIN_PIN: ${{ secrets.CANARY_LOGIN_PIN }}
