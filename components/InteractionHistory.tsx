@@ -41,8 +41,7 @@ const STAGE_LABELS: Record<string, string> = {
 }
 
 
-function formatEntryDate(date: Date): string {
-  const now = new Date()
+export function formatEntryDate(date: Date, now: Date): string {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
@@ -184,7 +183,7 @@ function InteractionHistoryEntry({
               lineHeight: "var(--line-height-body)",
             }}
           >
-            {formatEntryDate(entry.date)}
+            {formatEntryDate(entry.date, new Date())}
           </span>
           <span
             style={{
@@ -211,6 +210,7 @@ function InteractionHistoryEntry({
         >
           <OutcomeIndicator outcome={entry.outcome} />
           <span
+            data-testid="interaction-outcome"
             style={{
               color:
                 entry.outcome === "sold"
@@ -231,6 +231,7 @@ function InteractionHistoryEntry({
         {/* Ask line — omitted when not present */}
         {entry.ask && (
           <div
+            data-testid="interaction-ask"
             className="flex items-baseline gap-1"
             style={{ lineHeight: "var(--line-height-body)" }}
           >
