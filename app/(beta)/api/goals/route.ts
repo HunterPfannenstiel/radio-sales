@@ -5,6 +5,7 @@ import { Mutations } from "@/server/mutations";
 import { Queries } from "@/server/queries";
 import { Roles } from "@/server/roles/Roles";
 import { getSessionRepId } from "@/lib/session";
+import { withRequestLogging } from "@/lib/request-context";
 
 const setGoalBodySchema = z.object({
   monthlyGoalAmount: z.number().positive(),
@@ -12,7 +13,7 @@ const setGoalBodySchema = z.object({
   weeklyAskTarget: z.number().int().nonnegative(),
 });
 
-export async function GET() {
+export const GET = withRequestLogging(async () => {
   const repId = await getSessionRepId();
   if (!repId) {
     return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
@@ -24,9 +25,9 @@ export async function GET() {
 
   const result = await Queries.repGoals.execute(repId);
   return Response.json(result);
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withRequestLogging(async (request: NextRequest) => {
   const repId = await getSessionRepId();
   if (!repId) {
     return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
@@ -53,4 +54,4 @@ export async function POST(request: NextRequest) {
 
   await Mutations.setRepGoal.execute({ repId, ...parsed.data });
   return new Response(null, { status: 204 });
-}
+});

@@ -539,13 +539,18 @@ function ActivityPaceSection({
 
 export default function DashboardPage() {
   const [selectedMonday, setSelectedMonday] = useState<Date>(getMondayOfCurrentWeek)
-  const weekState = getWeekPeriodState(selectedMonday, getMondayOfCurrentWeek())
+  // Pinned to whichever week `data` currently reflects, so periodState-derived
+  // colors never race ahead of a still-in-flight fetch for the newly selected week.
+  const [committedMonday, setCommittedMonday] = useState<Date>(selectedMonday)
+  const weekState = getWeekPeriodState(committedMonday, getMondayOfCurrentWeek())
 
   const thursday = new Date(selectedMonday)
   thursday.setDate(selectedMonday.getDate() + 3)
   const monthParam = `${thursday.getFullYear()}-${String(thursday.getMonth() + 1).padStart(2, "0")}`
+  const committedThursday = new Date(committedMonday)
+  committedThursday.setDate(committedMonday.getDate() + 3)
   const now = new Date()
-  const monthState = getMonthPeriodState(thursday, now)
+  const monthState = getMonthPeriodState(committedThursday, now)
   const weekYear = thursday.getFullYear()
   const weekNumber = getISOWeekNumber(selectedMonday)
   const apiUrl = `/api/dashboard?month=${monthParam}&weekYear=${weekYear}&weekNumber=${weekNumber}`
@@ -553,6 +558,7 @@ export default function DashboardPage() {
   const { onCallLogged } = useQuickLog()
 
   useEffect(() => onCallLogged(refetch), [onCallLogged, refetch])
+  useEffect(() => { setCommittedMonday(selectedMonday) }, [data])
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-3xl mx-auto w-full">

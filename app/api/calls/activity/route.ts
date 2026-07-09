@@ -2,8 +2,9 @@ import { type NextRequest } from "next/server";
 import { Queries } from "@/server/queries";
 import { getRequestTimezone } from "@/lib/timezone";
 import { getSessionRepId } from "@/lib/session";
+import { withRequestLogging } from "@/lib/request-context";
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestLogging(async (request: NextRequest) => {
   const repId = await getSessionRepId();
   if (!repId) {
     return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
@@ -12,4 +13,4 @@ export async function GET(request: NextRequest) {
   const timezone = getRequestTimezone(request);
   const result = await Queries.callActivity.execute({ repId, timezone });
   return Response.json(result);
-}
+});
