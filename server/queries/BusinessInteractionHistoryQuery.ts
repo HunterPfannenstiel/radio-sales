@@ -34,6 +34,40 @@ export interface IBusinessInteractionHistoryQuery {
 
 const NEXT_STEP_LABELS = Object.fromEntries(NEXT_STEPS.map((s) => [s.value, s.label]));
 
+// Pure: sorts a business's call logs newest-first and maps each to the
+// timeline's display DTO (outcome vocabulary, ask, next-step label).
+// Absent outcome collapses to "follow_up" — regression guard for the §0.3 bug.
+export function buildInteractionHistory(
+  logs: RepStore["callLogs"]
+): InteractionHistoryEntryDTO[] {
+  const sortedLogs = [...logs].sort(
+    (a, b) => new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()
+  );
+
+  return sortedLogs.map((log) => {
+    const entry: InteractionHistoryEntryDTO = {
+      id: log.id,
+      date: log.loggedAt,
+      stage: log.stage,
+      outcome: log.outcome ? OUTCOME_DISPLAY[log.outcome] : "follow_up",
+      nextStep: NEXT_STEP_LABELS[log.whatNext] ?? log.whatNext,
+    };
+
+    if (log.budget !== undefined) {
+      const termValue = log.termValue ?? 1;
+      const termUnit = log.termUnit ?? "months";
+      const term = `${termValue} ${termUnit}`;
+      entry.ask = {
+        amount: log.budget,
+        term,
+        confidence: log.confidence ?? "",
+      };
+    }
+
+    return entry;
+  });
+}
+
 export class BlobBusinessInteractionHistoryQuery
   implements IBusinessInteractionHistoryQuery
 {
@@ -44,34 +78,8 @@ export class BlobBusinessInteractionHistoryQuery
     const store =
       (await blob.read<RepStore>(paths.repStore(repId))) ?? emptyRepStore();
 
-    const logs = store.callLogs
-      .filter((c) => c.businessId === businessId)
-      .sort(
-        (a, b) =>
-          new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()
-      );
+    const logs = store.callLogs.filter((c) => c.businessId === businessId);
 
-    return logs.map((log) => {
-      const entry: InteractionHistoryEntryDTO = {
-        id: log.id,
-        date: log.loggedAt,
-        stage: log.stage,
-        outcome: log.outcome ? OUTCOME_DISPLAY[log.outcome] : "follow_up",
-        nextStep: NEXT_STEP_LABELS[log.whatNext] ?? log.whatNext,
-      };
-
-      if (log.budget !== undefined) {
-        const termValue = log.termValue ?? 1;
-        const termUnit = log.termUnit ?? "months";
-        const term = `${termValue} ${termUnit}`;
-        entry.ask = {
-          amount: log.budget,
-          term,
-          confidence: log.confidence ?? "",
-        };
-      }
-
-      return entry;
-    });
+    return buildInteractionHistory(logs);
   }
 }
