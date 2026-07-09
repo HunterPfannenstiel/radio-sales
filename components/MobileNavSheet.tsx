@@ -30,6 +30,7 @@ export function MobileNavSheet() {
         side="left"
         className="w-3/4 max-w-[280px] flex flex-col gap-0 p-0 border-none"
         style={{ background: "var(--sidebar)", color: "var(--sidebar-foreground)" }}
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {/* Accessible title/description only — the logo lockup below is the visible header */}
         <SheetTitle className="sr-only">Navigation menu</SheetTitle>

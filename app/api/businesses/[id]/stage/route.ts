@@ -3,15 +3,16 @@ import { z } from "zod";
 import { Mutations } from "@/server/mutations";
 import { Roles } from "@/server/roles/Roles";
 import { getSessionRepId } from "@/lib/session";
+import { withRequestLogging } from "@/lib/request-context";
 
 const updateStageBodySchema = z.object({
   stage: z.string().min(1),
 });
 
-export async function PATCH(
+export const PATCH = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const repId = await getSessionRepId();
   if (!repId) {
     return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
@@ -61,4 +62,4 @@ export async function PATCH(
       headers: { "Content-Type": "application/json" },
     });
   }
-}
+});
