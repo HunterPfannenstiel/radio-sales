@@ -29,8 +29,9 @@ export function registerShipmentBucketProvider(provider: () => Set<Promise<void>
 // Bounds how long a single shipment can be pending. Without this, a stalled
 // Better Stack request never resolves, so it never leaves `pendingShipments` —
 // and every subsequent `flushLogShipping()` call (from any request sharing this
-// instance) would await it and hang right along with it.
-const SHIPMENT_TIMEOUT_MS = Number(process.env.BETTER_STACK_TIMEOUT_MS ?? 5000);
+// instance) would await it and hang right along with it. Kept generous since an
+// aborted shipment is a dropped log line, not just a slow one.
+const SHIPMENT_TIMEOUT_MS = Number(process.env.BETTER_STACK_TIMEOUT_MS ?? 15000);
 
 function createBetterStackStream(token: string, endpoint: string) {
   return new Writable({
@@ -53,9 +54,14 @@ function createBetterStackStream(token: string, endpoint: string) {
         .then(() => undefined)
         // Shipping a log must never be able to crash or block the app that emitted
         // it, so failures (bad token, network blip, rate limit, or the timeout
-        // above) are swallowed here. There's no signal of a broken shipment other
-        // than events going missing in Better Stack itself.
-        .catch(() => undefined)
+        // above) are swallowed here rather than thrown. We still surface a
+        // console line (bypasses pino/Better Stack entirely, so no feedback loop)
+        // so a timeout specifically — as opposed to a silent drop — is visible.
+        .catch((err) => {
+          if (err instanceof Error && err.name === "AbortError") {
+            console.error(`Better Stack shipment timed out after ${SHIPMENT_TIMEOUT_MS}ms`);
+          }
+        })
         .finally(() => clearTimeout(timeout));
 
       bucket.add(shipment);
