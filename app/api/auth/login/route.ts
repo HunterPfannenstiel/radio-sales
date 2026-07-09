@@ -2,13 +2,14 @@ import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { Mutations } from "@/server/mutations";
 import { setSessionRepId } from "@/lib/session";
+import { withRequestLogging } from "@/lib/request-context";
 
 const loginBodySchema = z.object({
   name: z.string().trim().min(1),
   pin: z.string().regex(/^\d{4}$/, "PIN must be 4 digits"),
 });
 
-export async function POST(request: NextRequest) {
+export const POST = withRequestLogging(async (request: NextRequest) => {
   let body: unknown;
   try {
     body = await request.json();
@@ -37,4 +38,4 @@ export async function POST(request: NextRequest) {
 
   await setSessionRepId(result.repId);
   return Response.json({ repId: result.repId, name: result.name });
-}
+});

@@ -4,6 +4,7 @@ import { Queries } from "@/server/queries";
 import { Roles } from "@/server/roles/Roles";
 import { getRequestTimezone } from "@/lib/timezone";
 import { getSessionRepId } from "@/lib/session";
+import { withRequestLogging } from "@/lib/request-context";
 
 const querySchema = z.object({
   month: z
@@ -13,7 +14,7 @@ const querySchema = z.object({
   weekNumber: z.coerce.number().int().min(1).max(53),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestLogging(async (request: NextRequest) => {
   const repId = await getSessionRepId();
   if (!repId) {
     return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
@@ -63,4 +64,4 @@ export async function GET(request: NextRequest) {
   });
 
   return Response.json(result);
-}
+});
